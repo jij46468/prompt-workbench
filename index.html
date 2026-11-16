@@ -213,7 +213,7 @@
         <div class="screen-content">
           <div class="screen-heading">
             <h2 class="screen-title">生成</h2>
-            <p class="screen-description">テンプレート展開やカテゴリ別ランダムでプロンプトを一括生成します。</p>
+            <p class="screen-description">テンプレート展開、カテゴリ別ランダム、辞書の人気タグからのランダムでプロンプトを一括生成します。</p>
           </div>
 
           <!-- 生成方式切り替え (セグメントボタン) -->
@@ -236,6 +236,15 @@
               aria-selected="false"
               aria-controls="genCategoryPanel"
             >カテゴリ別ランダム</button>
+            <button
+              type="button"
+              role="tab"
+              class="gen-mode-btn"
+              id="genModeDictBtn"
+              data-mode="dict"
+              aria-selected="false"
+              aria-controls="genDictPanel"
+            >辞書ランダム</button>
           </div>
 
           <!-- モード1: テンプレート展開パネル -->
@@ -307,6 +316,100 @@
               </div>
               <div class="tag-input-hint">
                 <span>💡 ONの各カテゴリから1件ずつ抽選し、カンマ区切りで1文を組み立てます</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- モード3: 辞書ランダムパネル (T7) -->
+          <div class="gen-panel" id="genDictPanel" role="tabpanel" aria-labelledby="genModeDictBtn" hidden>
+            <div class="gen-field-group">
+              <div class="section-header">
+                <span class="section-title">人気フィルター（投稿数の上位から抽選）</span>
+              </div>
+              <div class="gen-settings-row">
+                <div class="gen-setting-col">
+                  <label for="genDictPercentInput" class="setting-label">上位 (%)</label>
+                  <input
+                    type="number"
+                    id="genDictPercentInput"
+                    class="gen-input-number"
+                    min="1"
+                    max="100"
+                    value="10"
+                    aria-label="人気フィルター上位パーセント"
+                  >
+                </div>
+                <div class="gen-setting-col">
+                  <label for="genDictTagsInput" class="setting-label">1件あたりのタグ数</label>
+                  <input
+                    type="number"
+                    id="genDictTagsInput"
+                    class="gen-input-number"
+                    min="1"
+                    max="30"
+                    value="5"
+                    aria-label="1件あたりのタグ数"
+                  >
+                </div>
+              </div>
+              <div class="tag-input-hint">
+                <span id="genDictPoolInfo">辞書の読み込み待ちです</span>
+              </div>
+            </div>
+
+            <div class="gen-field-group">
+              <div class="section-header">
+                <span class="section-title">対象カテゴリ (Danbooru)</span>
+              </div>
+              <div class="category-checkbox-grid" id="dictCategoryChecklist" role="group" aria-label="辞書カテゴリ一覧">
+                <label class="category-card is-checked" for="dict_cb_0">
+                  <input type="checkbox" id="dict_cb_0" class="category-checkbox" value="0" checked>
+                  <div class="category-info">
+                    <div class="category-title-row">
+                      <span class="category-name">一般</span>
+                    </div>
+                    <span class="category-preview-text">general（外見・衣装・ポーズ等）</span>
+                  </div>
+                </label>
+                <label class="category-card" for="dict_cb_4">
+                  <input type="checkbox" id="dict_cb_4" class="category-checkbox" value="4">
+                  <div class="category-info">
+                    <div class="category-title-row">
+                      <span class="category-name">キャラクター</span>
+                    </div>
+                    <span class="category-preview-text">character（固有キャラ名）</span>
+                  </div>
+                </label>
+                <label class="category-card" for="dict_cb_3">
+                  <input type="checkbox" id="dict_cb_3" class="category-checkbox" value="3">
+                  <div class="category-info">
+                    <div class="category-title-row">
+                      <span class="category-name">著作権（作品）</span>
+                    </div>
+                    <span class="category-preview-text">copyright（作品・シリーズ名）</span>
+                  </div>
+                </label>
+                <label class="category-card" for="dict_cb_1">
+                  <input type="checkbox" id="dict_cb_1" class="category-checkbox" value="1">
+                  <div class="category-info">
+                    <div class="category-title-row">
+                      <span class="category-name">アーティスト</span>
+                    </div>
+                    <span class="category-preview-text">artist（絵師名）</span>
+                  </div>
+                </label>
+                <label class="category-card" for="dict_cb_5">
+                  <input type="checkbox" id="dict_cb_5" class="category-checkbox" value="5">
+                  <div class="category-info">
+                    <div class="category-title-row">
+                      <span class="category-name">メタ</span>
+                    </div>
+                    <span class="category-preview-text">meta（画質・形式系タグ）</span>
+                  </div>
+                </label>
+              </div>
+              <div class="tag-input-hint">
+                <span>💡 選んだカテゴリの中で人気上位のタグから、重複なしで抽選します</span>
               </div>
             </div>
           </div>

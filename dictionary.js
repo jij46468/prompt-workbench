@@ -534,6 +534,7 @@
   window.PromptWorkbenchDictionary = {
     load: loadDictionary,
     search: searchSuggestions,
+    getAllTags: () => state.tags,
     getStatus: () => ({
       status: state.status,
       totalTags: state.tags.length,

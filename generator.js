@@ -251,12 +251,48 @@
     };
   }
 
+  /**
+   * 辞書ランダムモード (T7): 人気プールの構築
+   * tags: dictionary.js のタグ配列 [{ name, category, count, aliases }]
+   * percent: 投稿数の上位 % (1〜100)
+   * categories: 対象 Danbooru カテゴリ番号の Set (空なら全カテゴリ)
+   * 戻り値: 投稿数降順に並んだプール配列（tags 自体は変更しない）
+   */
+  function buildPopularityPool(tags, percent, categories) {
+    const rawPct = Number(percent);
+    const pct = Math.min(100, Math.max(1, Number.isFinite(rawPct) ? rawPct : 10));
+    const filtered = (categories && categories.size > 0)
+      ? tags.filter(t => categories.has(t.category))
+      : tags.slice();
+    const sorted = filtered.slice().sort((a, b) => b.count - a.count);
+    const size = Math.max(1, Math.ceil(sorted.length * pct / 100));
+    return sorted.slice(0, size);
+  }
+
+  /**
+   * 辞書ランダムモード (T7): プールから重複なしで n 件抽選する
+   * 部分 Fisher-Yates シャッフルで先頭 n 件を取り出す。
+   * 戻り値: タグ名の配列
+   */
+  function drawTagsFromPool(pool, n, rng) {
+    const count = Math.min(Math.max(0, n | 0), pool.length);
+    if (count === 0) return [];
+    const copy = pool.slice();
+    for (let i = 0; i < count; i++) {
+      const j = i + Math.floor(rng() * (copy.length - i));
+      const tmp = copy[i];
+      copy[i] = copy[j];
+      copy[j] = tmp;
+    }
+    return copy.slice(0, count).map(t => t.name);
+  }
+
   /* ==========================================================================
      3. 生成画面 UI コントローラー
      ========================================================================== */
 
   // 状態管理
-  let currentMode = 'template'; // 'template' | 'category'
+  let currentMode = 'template'; // 'template' | 'category' | 'dict'
   let currentResults = [];
   let resultIdSeq = 1;
 
@@ -313,8 +349,14 @@
     // DOM 要素取得
     const genModeTemplateBtn = document.getElementById('genModeTemplateBtn');
     const genModeCategoryBtn = document.getElementById('genModeCategoryBtn');
+    const genModeDictBtn = document.getElementById('genModeDictBtn');
     const genTemplatePanel = document.getElementById('genTemplatePanel');
     const genCategoryPanel = document.getElementById('genCategoryPanel');
+    const genDictPanel = document.getElementById('genDictPanel');
+    const genDictPercentInput = document.getElementById('genDictPercentInput');
+    const genDictTagsInput = document.getElementById('genDictTagsInput');
+    const genDictPoolInfo = document.getElementById('genDictPoolInfo');
+    const dictCategoryChecklist = document.getElementById('dictCategoryChecklist');
 
     // テンプレートパネル要素
     const genTemplateInput = document.getElementById('genTemplateInput');
@@ -361,19 +403,24 @@
        ------------------------------------------------------------------------ */
     function setMode(mode) {
       currentMode = mode;
-      const isTemplate = mode === 'template';
 
-      if (genModeTemplateBtn) {
-        genModeTemplateBtn.classList.toggle('active', isTemplate);
-        genModeTemplateBtn.setAttribute('aria-selected', isTemplate ? 'true' : 'false');
-      }
-      if (genModeCategoryBtn) {
-        genModeCategoryBtn.classList.toggle('active', !isTemplate);
-        genModeCategoryBtn.setAttribute('aria-selected', !isTemplate ? 'true' : 'false');
-      }
+      const modeBtns = [
+        [genModeTemplateBtn, 'template'],
+        [genModeCategoryBtn, 'category'],
+        [genModeDictBtn, 'dict']
+      ];
+      modeBtns.forEach(([btn, m]) => {
+        if (!btn) return;
+        const active = mode === m;
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
 
-      if (genTemplatePanel) genTemplatePanel.hidden = !isTemplate;
-      if (genCategoryPanel) genCategoryPanel.hidden = isTemplate;
+      if (genTemplatePanel) genTemplatePanel.hidden = mode !== 'template';
+      if (genCategoryPanel) genCategoryPanel.hidden = mode !== 'category';
+      if (genDictPanel) genDictPanel.hidden = mode !== 'dict';
+
+      if (mode === 'dict') updateDictPoolInfo();
     }
 
     if (genModeTemplateBtn) {
@@ -382,6 +429,76 @@
     if (genModeCategoryBtn) {
       genModeCategoryBtn.addEventListener('click', () => setMode('category'));
     }
+    if (genModeDictBtn) {
+      genModeDictBtn.addEventListener('click', () => setMode('dict'));
+    }
+
+    /* ------------------------------------------------------------------------
+       1b. 辞書ランダム (T7): プール情報表示
+       ------------------------------------------------------------------------ */
+    function getDictSelectedCategories() {
+      const set = new Set();
+      if (dictCategoryChecklist) {
+        dictCategoryChecklist.querySelectorAll('input[type="checkbox"]:checked')
+          .forEach(cb => set.add(Number(cb.value)));
+      }
+      return set;
+    }
+
+    function getDictPercent() {
+      const v = genDictPercentInput ? Number(genDictPercentInput.value) : 10;
+      if (!Number.isFinite(v)) return 10;
+      return Math.min(100, Math.max(1, Math.round(v)));
+    }
+
+    function getDictTagsPerPrompt() {
+      const v = genDictTagsInput ? Number(genDictTagsInput.value) : 5;
+      if (!Number.isFinite(v)) return 5;
+      return Math.min(30, Math.max(1, Math.round(v)));
+    }
+
+    function updateDictPoolInfo() {
+      if (!genDictPoolInfo) return;
+      const dict = window.PromptWorkbenchDictionary;
+      const status = dict && typeof dict.getStatus === 'function' ? dict.getStatus() : null;
+      if (!status || status.status !== 'ready') {
+        genDictPoolInfo.textContent = status && status.status === 'error'
+          ? '辞書の読み込みに失敗しました（管理画面から再読み込みできます）'
+          : '辞書の読み込み中です…';
+        return;
+      }
+      const allTags = dict.getAllTags();
+      const pool = buildPopularityPool(allTags, getDictPercent(), getDictSelectedCategories());
+      if (pool.length === 0) {
+        genDictPoolInfo.textContent = '候補プールが空です（カテゴリを選択してください）';
+        return;
+      }
+      const minCount = pool[pool.length - 1].count;
+      genDictPoolInfo.textContent =
+        `候補プール: ${pool.length.toLocaleString()} 件（対象 ${allTags.length.toLocaleString()} 件中 上位 ${getDictPercent()}%、最低投稿数 ${minCount.toLocaleString()}）`;
+    }
+
+    if (genDictPercentInput) {
+      genDictPercentInput.addEventListener('input', updateDictPoolInfo);
+      genDictPercentInput.addEventListener('change', updateDictPoolInfo);
+    }
+    if (dictCategoryChecklist) {
+      dictCategoryChecklist.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        cb.addEventListener('change', () => {
+          cb.closest('.category-card')?.classList.toggle('is-checked', cb.checked);
+          updateDictPoolInfo();
+        });
+      });
+    }
+    // 辞書の初回読み込み完了をプール情報へ反映（読み込み中のみ監視）
+    const dictInfoTimer = setInterval(() => {
+      const dict = window.PromptWorkbenchDictionary;
+      const status = dict && typeof dict.getStatus === 'function' ? dict.getStatus() : null;
+      if (status && (status.status === 'ready' || status.status === 'error')) {
+        clearInterval(dictInfoTimer);
+        if (currentMode === 'dict') updateDictPoolInfo();
+      }
+    }, 1000);
 
     /* ------------------------------------------------------------------------
        2. テンプレート構文チップ入力補助
@@ -649,7 +766,7 @@
             usedWildcards: res.usedWildcards
           });
         }
-      } else {
+      } else if (currentMode === 'category') {
         // カテゴリ別ランダムモード
         const prefix = genCategoryPrefix ? genCategoryPrefix.value : '';
         const selectedCategories = [];
@@ -677,6 +794,53 @@
             prompt: res.prompt,
             warnings: res.warnings,
             usedWildcards: res.usedWildcards
+          });
+        }
+      } else {
+        // 辞書ランダムモード (T7): 人気上位プールから重複なし抽選
+        const dict = window.PromptWorkbenchDictionary;
+        const status = dict && typeof dict.getStatus === 'function' ? dict.getStatus() : null;
+        if (!dict || !status || status.status !== 'ready' || typeof dict.getAllTags !== 'function') {
+          if (window.PromptWorkbench?.showToast) {
+            window.PromptWorkbench.showToast('辞書の読み込みが完了していません');
+          }
+          return;
+        }
+
+        const categories = getDictSelectedCategories();
+        if (categories.size === 0) {
+          if (window.PromptWorkbench?.showToast) {
+            window.PromptWorkbench.showToast('対象カテゴリを1つ以上選択してください');
+          }
+          return;
+        }
+
+        const pool = buildPopularityPool(dict.getAllTags(), getDictPercent(), categories);
+        if (pool.length === 0) {
+          if (window.PromptWorkbench?.showToast) {
+            window.PromptWorkbench.showToast('候補プールが空です');
+          }
+          return;
+        }
+
+        const tagsPerPrompt = getDictTagsPerPrompt();
+        for (let i = 0; i < count; i++) {
+          const itemSeed = (baseSeed + i) >>> 0;
+          const rng = createMulberry32(itemSeed);
+          const drawn = drawTagsFromPool(pool, tagsPerPrompt, rng);
+          const warnings = [];
+          if (tagsPerPrompt > pool.length) {
+            warnings.push(`プール件数（${pool.length}件）より多いタグ数が指定されたため、${pool.length}件で生成しました`);
+          }
+          newResults.push({
+            id: `gen_res_${Date.now()}_${resultIdSeq++}`,
+            index: i + 1,
+            seed: itemSeed,
+            baseSeed: baseSeed,
+            mode: 'dict',
+            prompt: drawn.join(', '),
+            warnings: warnings,
+            usedWildcards: []
           });
         }
       }
@@ -874,6 +1038,8 @@
     parseSeedValue,
     expandTemplate,
     generateCategoryPrompt,
+    buildPopularityPool,
+    drawTagsFromPool,
     getResults: () => currentResults.map(r => ({ ...r })),
     clearResults: () => {
       currentResults = [];
