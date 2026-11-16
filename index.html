@@ -75,26 +75,104 @@
             <p class="screen-description">タグ入力補完でプロンプトを組み立てます。</p>
           </div>
 
+          <!-- 3.2 Tag input コンポーネント -->
+          <div class="edit-section" id="tagInputSection">
+            <div class="section-header">
+              <div class="section-title-wrap">
+                <label for="tagInputField" class="section-title">タグ入力</label>
+                <span class="tag-counter" id="tagCounterBadge">0 件</span>
+              </div>
+              <div class="section-tools">
+                <button
+                  type="button"
+                  class="btn-text-action"
+                  id="clearAllTagsBtn"
+                  title="すべてのタグを削除"
+                  disabled
+                >全削除</button>
+              </div>
+            </div>
+
+            <div class="tag-input-container" id="tagInputContainer">
+              <!-- チップと入力欄が並ぶ入力ボックス -->
+              <div class="tag-input-box" id="tagInputBox">
+                <div class="tag-chips-list" id="tagChipsList" role="list" aria-label="確定済みタグ一覧"></div>
+                <input
+                  type="text"
+                  id="tagInputField"
+                  class="tag-input-field"
+                  placeholder="タグを入力 (Enter / カンマで確定)"
+                  autocomplete="off"
+                  autocorrect="off"
+                  autocapitalize="off"
+                  spellcheck="false"
+                  role="combobox"
+                  aria-autocomplete="list"
+                  aria-expanded="false"
+                  aria-controls="tagSuggestionsDropdown"
+                >
+              </div>
+
+              <!-- 候補ドロップダウン枠組み (T2: 仮辞書データ / T3: Danbooru実辞書) -->
+              <div
+                class="tag-suggestions-dropdown"
+                id="tagSuggestionsDropdown"
+                role="listbox"
+                aria-label="タグ補完候補"
+                hidden
+              >
+                <div class="suggestions-header" id="suggestionsHeader">
+                  <span class="suggestions-header-title">補完候補 (仮辞書)</span>
+                  <span class="suggestions-count" id="suggestionsCount">0 件</span>
+                </div>
+                <div class="suggestions-list" id="suggestionsList" role="listbox"></div>
+              </div>
+            </div>
+
+            <div class="tag-input-hint">
+              <span>💡 Enter または カンマ (,) でタグ確定 / 空欄で Backspace で末尾削除</span>
+            </div>
+          </div>
+
+          <!-- 2.1 プレビュー & コピー コンポーネント -->
+          <div class="edit-section" id="previewSection">
+            <div class="section-header">
+              <div class="section-title-wrap">
+                <span class="section-title">プレビュー & コピー</span>
+              </div>
+              <div class="section-tools">
+                <button
+                  type="button"
+                  class="btn-copy"
+                  id="copyPromptBtn"
+                  aria-label="プロンプトをクリップボードにコピー"
+                  disabled
+                >
+                  <svg class="btn-copy-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  <span id="copyPromptBtnText">コピー</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="preview-box">
+              <div
+                class="preview-text"
+                id="promptPreviewText"
+                aria-live="polite"
+              ><span class="preview-empty-placeholder">タグを追加すると、ここにカンマ区切りのプロンプトが表示されます。</span></div>
+            </div>
+            <div class="copy-toast" id="copyToast" role="status" aria-live="polite" hidden></div>
+          </div>
+
           <div class="placeholder-section">
             <div class="placeholder-card">
-              <div class="placeholder-badge">T2 実装予定</div>
-              <h3 class="placeholder-title">Tag input（タグ入力欄）</h3>
-              <p class="placeholder-text">Danbooru 辞書からのリアルタイムタグ補完、チップ化、削除、順序管理を行います。</p>
-              <!-- TODO: T2にてTag input部品、チップ表示、ドロップダウン候補リストを実装 -->
-            </div>
-
-            <div class="placeholder-card">
-              <div class="placeholder-badge">T2 実装予定</div>
-              <h3 class="placeholder-title">プレビュー & コピー</h3>
-              <p class="placeholder-text">組み立てたタグ列をカンマ区切りのテキストとして確認し、ワンタップでクリップボードにコピーします。</p>
-              <!-- TODO: T2にてプレビュー表示欄とコピー機能を実装 -->
-            </div>
-
-            <div class="placeholder-card">
-              <div class="placeholder-badge">T2 / T6 実装予定</div>
+              <div class="placeholder-badge">T6 実装予定</div>
               <h3 class="placeholder-title">スニペット一覧</h3>
-              <p class="placeholder-text">よく使う固定フレーズを1タップでチップとして挿入できます。</p>
-              <!-- TODO: T2/T6にてスニペット一覧と挿入ロジックを実装 -->
+              <p class="placeholder-text">よく使う固定フレーズを1タップでチップとして挿入できます（T6にて実装予定）。</p>
+              <!-- TODO: T6にてスニペット一覧と挿入ロジックを実装 -->
             </div>
           </div>
         </div>

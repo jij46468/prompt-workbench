@@ -258,6 +258,446 @@ body {
 }
 
 /* --------------------------------------------------------------------------
+   3.2 Tag input & プレビュー (T2)
+   -------------------------------------------------------------------------- */
+.edit-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 2px;
+}
+
+.section-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  letter-spacing: -0.01em;
+}
+
+.tag-counter {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  background-color: var(--color-accent-subtle);
+  padding: 2px 8px;
+  border-radius: 9999px;
+  border: 1px solid rgba(56, 189, 248, 0.22);
+}
+
+.section-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-text-action {
+  background: transparent;
+  border: none;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: color 0.15s ease, background-color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-text-action:hover:not(:disabled) {
+  color: #f87171;
+  background-color: rgba(248, 113, 113, 0.12);
+}
+
+.btn-text-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Tag input コンテナ */
+.tag-input-container {
+  position: relative;
+  width: 100%;
+}
+
+/* チップと入力欄を内包するメインボックス */
+.tag-input-box {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-height: 52px;
+  padding: 8px 10px;
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border-card);
+  border-radius: 12px;
+  cursor: text;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.tag-input-box:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.tag-input-box:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-subtle);
+  background-color: #19233a;
+}
+
+/* チップ一覧ラッパー (display: contents で flex line wrap を共有) */
+.tag-chips-list {
+  display: contents;
+}
+
+/* タグチップ (ピル) */
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px 4px 10px;
+  background-color: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text-main);
+  line-height: 1.25;
+  user-select: none;
+  -webkit-user-select: none;
+  animation: chipPopIn 220ms var(--ease-spring);
+  will-change: transform, opacity;
+}
+
+@keyframes chipPopIn {
+  from {
+    transform: scale(0.82);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* スニペット由来チップの区別色 */
+.tag-chip.is-snippet {
+  background-color: rgba(168, 85, 247, 0.14);
+  border-color: rgba(168, 85, 247, 0.35);
+  color: #f3e8ff;
+}
+
+.tag-chip-text {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* チップ個別削除ボタン (×) */
+.tag-chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tag-chip-remove:hover {
+  background-color: rgba(248, 113, 113, 0.25);
+  color: #fca5a5;
+  transform: scale(1.1);
+}
+
+.tag-chip-remove:active {
+  transform: scale(0.9);
+}
+
+/* タグ入力欄 */
+.tag-input-field {
+  flex: 1 1 120px;
+  min-width: 100px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 1rem; /* 16px: モバイルでの自動拡大防止 */
+  color: var(--color-text-main);
+  padding: 0 4px;
+}
+
+.tag-input-field::placeholder {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+/* 入力ヒント */
+.tag-input-hint {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  padding: 2px 4px;
+  line-height: 1.4;
+}
+
+/* 候補ドロップダウン枠組み */
+.tag-suggestions-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background-color: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.65), 0 2px 6px rgba(0, 0, 0, 0.35);
+  z-index: 50;
+  overflow: hidden;
+  animation: dropdownSlide 180ms ease-out;
+}
+
+@keyframes dropdownSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.suggestions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 12px;
+  background-color: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.suggestions-list {
+  max-height: 240px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px;
+  min-height: 42px; /* タップ領域確保 */
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background-color 0.12s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.suggestion-item:hover,
+.suggestion-item.active {
+  background-color: rgba(56, 189, 248, 0.16);
+}
+
+.suggestion-item.active .suggestion-name {
+  color: var(--color-accent);
+}
+
+.suggestion-left {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  flex: 1;
+}
+
+/* カテゴリ色ドット */
+.cat-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.cat-dot-0 { background-color: #38bdf8; box-shadow: 0 0 6px rgba(56, 189, 248, 0.5); } /* General (一般) */
+.cat-dot-1 { background-color: #f43f5e; box-shadow: 0 0 6px rgba(244, 63, 94, 0.5); } /* Artist (絵師) */
+.cat-dot-3 { background-color: #c084fc; box-shadow: 0 0 6px rgba(192, 132, 252, 0.5); } /* Copyright (版権) */
+.cat-dot-4 { background-color: #4ade80; box-shadow: 0 0 6px rgba(74, 222, 128, 0.5); } /* Character (キャラ) */
+.cat-dot-5 { background-color: #fbbf24; box-shadow: 0 0 6px rgba(251, 191, 36, 0.5); } /* Meta (メタ) */
+
+.suggestion-text-group {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.suggestion-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.suggestion-alias {
+  font-size: 0.72rem;
+  color: var(--color-accent);
+  opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.suggestion-count {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background-color: rgba(255, 255, 255, 0.05);
+  padding: 2px 7px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.suggestions-empty {
+  padding: 16px 12px;
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+/* 2.1 プレビュー & コピー */
+.preview-box {
+  position: relative;
+  background-color: #0b101d;
+  border: 1px solid var(--color-border-card);
+  border-radius: 12px;
+  padding: 12px 14px;
+  min-height: 80px;
+  max-height: 180px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.preview-text {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: #e2e8f0;
+  word-break: break-word;
+  white-space: pre-wrap;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.preview-empty-placeholder {
+  font-family: var(--font-family);
+  color: var(--color-text-muted);
+  font-size: 0.825rem;
+  font-style: italic;
+}
+
+.btn-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  min-height: 36px;
+  background-color: rgba(56, 189, 248, 0.14);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 8px;
+  color: var(--color-accent);
+  font-family: inherit;
+  font-size: 0.825rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-copy:hover:not(:disabled) {
+  background-color: rgba(56, 189, 248, 0.22);
+  border-color: rgba(56, 189, 248, 0.5);
+  transform: translateY(-1px);
+}
+
+.btn-copy:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-copy:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background-color: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: var(--color-text-muted);
+}
+
+.btn-copy.btn-copy-success {
+  background-color: rgba(34, 197, 94, 0.2) !important;
+  border-color: rgba(34, 197, 94, 0.5) !important;
+  color: #4ade80 !important;
+}
+
+.copy-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  background-color: #1e293b;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  color: #f8fafc;
+  padding: 10px 18px;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  z-index: 200;
+  animation: toastPop 240ms var(--ease-spring);
+  pointer-events: none;
+}
+
+@keyframes toastPop {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+/* --------------------------------------------------------------------------
    仮置きカード・プレースホルダー部品 (T1確認用)
    -------------------------------------------------------------------------- */
 .placeholder-section {
