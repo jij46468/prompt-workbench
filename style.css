@@ -1,0 +1,304 @@
+/* ==========================================================================
+   プロンプト作業台 (Prompt Workbench) - Style
+   Mobile-First (Pixel 6a 縦画面 412px 想定) / No External Resources
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Design Tokens & CSS Variables
+   -------------------------------------------------------------------------- */
+:root {
+  /* カラーパレット (ダークスレート基調) */
+  --color-bg-base: #090d16;
+  --color-bg-surface: #131b2e;
+  --color-bg-card: #1c263f;
+  --color-bg-card-hover: #222f4d;
+  
+  --color-text-main: #f8fafc;
+  --color-text-sub: #cbd5e1;
+  --color-text-muted: #8492a6;
+  
+  --color-accent: #38bdf8;
+  --color-accent-subtle: rgba(56, 189, 248, 0.12);
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-card: rgba(255, 255, 255, 0.06);
+
+  /* Tab pill ナビゲーション用トークン */
+  --track-bg: #0b1120;
+  --track-border: rgba(255, 255, 255, 0.08);
+  --track-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.7), inset 0 0 0 1px var(--track-border);
+  
+  --pill-bg: #f8fafc;
+  --pill-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.25);
+  --tab-text-default: #8492a6;
+  --tab-text-active: #090d16;
+
+  /* モーション：バネ感（オーバーシュート）のあるイージング */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-tab-slide: 360ms;
+
+  /* タイポグラフィ（システムフォントのみ使用・外部通信なし） */
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+}
+
+/* --------------------------------------------------------------------------
+   Reset & Base Styles
+   -------------------------------------------------------------------------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: var(--font-family);
+  background-color: var(--color-bg-base);
+  color: var(--color-text-main);
+  -webkit-text-size-adjust: 100%;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background-color: var(--color-bg-base);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* --------------------------------------------------------------------------
+   Layout (Pixel 6a 縦画面向けモバイルファースト)
+   -------------------------------------------------------------------------- */
+.app-container {
+  width: 100%;
+  max-width: 480px; /* Pixel 6a (412px) に適合しつつ、大画面では中央揃え */
+  margin: 0 auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-bg-base);
+  position: relative;
+  box-shadow: 0 0 32px rgba(0, 0, 0, 0.5);
+}
+
+/* --------------------------------------------------------------------------
+   3.1 固定ヘッダー & Tab pill ナビゲーション
+   -------------------------------------------------------------------------- */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: rgba(9, 13, 22, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 12px 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.header-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2px;
+}
+
+.app-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--color-text-main);
+}
+
+.app-version {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  background-color: var(--color-accent-subtle);
+  padding: 2px 7px;
+  border-radius: 9999px;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+/* Tab pill コンテナ */
+.tab-pill-nav {
+  width: 100%;
+}
+
+/* くぼんだ背景トラック */
+.tab-pill-track {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: var(--track-bg);
+  padding: 4px;
+  border-radius: 9999px;
+  box-shadow: var(--track-shadow);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* バネ感のあるイージングで滑る丸いピル背景 */
+.tab-pill-slider {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  width: 0;
+  background-color: var(--pill-bg);
+  border-radius: 9999px;
+  box-shadow: var(--pill-shadow);
+  pointer-events: none;
+  z-index: 1;
+  /* スライドアニメーション（spring-like easing） */
+  transition: transform var(--duration-tab-slide) var(--ease-spring),
+              width var(--duration-tab-slide) var(--ease-spring);
+  will-change: transform, width;
+}
+
+/* 初回読み込み時のちらつき・不要アニメーション防止用 */
+.tab-pill-slider.no-transition {
+  transition: none !important;
+}
+
+/* タブボタン */
+.tab-btn {
+  position: relative;
+  flex: 1;
+  z-index: 2;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 10px 0;
+  min-height: 44px; /* タップターゲット確保 */
+  color: var(--tab-text-default);
+  cursor: pointer;
+  text-align: center;
+  transition: color 240ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tab-btn:hover {
+  color: var(--color-text-sub);
+}
+
+.tab-btn.active {
+  color: var(--tab-text-active);
+  font-weight: 700;
+}
+
+.tab-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+  border-radius: 9999px;
+}
+
+/* --------------------------------------------------------------------------
+   メインコンテンツ & 画面切り替え
+   -------------------------------------------------------------------------- */
+.app-main {
+  flex: 1;
+  padding: 16px 16px calc(24px + env(safe-area-inset-bottom, 0px)) 16px;
+  overflow-y: auto;
+}
+
+.screen {
+  display: none;
+}
+
+.screen.active {
+  display: block;
+  animation: screenFadeIn 220ms ease-out;
+}
+
+@keyframes screenFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.screen-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.screen-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 2px;
+}
+
+.screen-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-text-main);
+}
+
+.screen-description {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   仮置きカード・プレースホルダー部品 (T1確認用)
+   -------------------------------------------------------------------------- */
+.placeholder-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.placeholder-card {
+  position: relative;
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border-card);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.placeholder-badge {
+  align-self: flex-start;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  background-color: var(--color-accent-subtle);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 6px;
+  padding: 2px 8px;
+  letter-spacing: 0.02em;
+}
+
+.placeholder-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text-main);
+  margin-top: 2px;
+}
+
+.placeholder-text {
+  font-size: 0.825rem;
+  color: var(--color-text-sub);
+  line-height: 1.5;
+}

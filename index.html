@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>プロンプト作業台</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- 画面上部固定ヘッダー -->
+    <header class="app-header">
+      <div class="header-inner">
+        <div class="header-brand">
+          <h1 class="app-title">プロンプト作業台</h1>
+          <span class="app-version">v1.0</span>
+        </div>
+
+        <!-- 3.1 Tab pill ナビゲーション -->
+        <nav class="tab-pill-nav" aria-label="主要画面ナビゲーション">
+          <div class="tab-pill-track" role="tablist" aria-label="画面切り替え">
+            <!-- スライドする丸いピル背景 -->
+            <div class="tab-pill-slider" id="tabPillSlider" aria-hidden="true"></div>
+
+            <button
+              type="button"
+              role="tab"
+              class="tab-btn active"
+              id="tab-edit"
+              data-screen="screen-edit"
+              aria-selected="true"
+              aria-controls="screen-edit"
+              tabindex="0"
+            >編集</button>
+
+            <button
+              type="button"
+              role="tab"
+              class="tab-btn"
+              id="tab-generate"
+              data-screen="screen-generate"
+              aria-selected="false"
+              aria-controls="screen-generate"
+              tabindex="-1"
+            >生成</button>
+
+            <button
+              type="button"
+              role="tab"
+              class="tab-btn"
+              id="tab-manage"
+              data-screen="screen-manage"
+              aria-selected="false"
+              aria-controls="screen-manage"
+              tabindex="-1"
+            >管理</button>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <!-- メインコンテンツ画面群（3画面切り替え） -->
+    <main class="app-main" id="mainContent">
+      <!-- 2.1 編集画面 -->
+      <section
+        id="screen-edit"
+        class="screen active"
+        role="tabpanel"
+        aria-labelledby="tab-edit"
+        tabindex="0"
+      >
+        <div class="screen-content">
+          <div class="screen-heading">
+            <h2 class="screen-title">編集</h2>
+            <p class="screen-description">タグ入力補完でプロンプトを組み立てます。</p>
+          </div>
+
+          <div class="placeholder-section">
+            <div class="placeholder-card">
+              <div class="placeholder-badge">T2 実装予定</div>
+              <h3 class="placeholder-title">Tag input（タグ入力欄）</h3>
+              <p class="placeholder-text">Danbooru 辞書からのリアルタイムタグ補完、チップ化、削除、順序管理を行います。</p>
+              <!-- TODO: T2にてTag input部品、チップ表示、ドロップダウン候補リストを実装 -->
+            </div>
+
+            <div class="placeholder-card">
+              <div class="placeholder-badge">T2 実装予定</div>
+              <h3 class="placeholder-title">プレビュー & コピー</h3>
+              <p class="placeholder-text">組み立てたタグ列をカンマ区切りのテキストとして確認し、ワンタップでクリップボードにコピーします。</p>
+              <!-- TODO: T2にてプレビュー表示欄とコピー機能を実装 -->
+            </div>
+
+            <div class="placeholder-card">
+              <div class="placeholder-badge">T2 / T6 実装予定</div>
+              <h3 class="placeholder-title">スニペット一覧</h3>
+              <p class="placeholder-text">よく使う固定フレーズを1タップでチップとして挿入できます。</p>
+              <!-- TODO: T2/T6にてスニペット一覧と挿入ロジックを実装 -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2.2 生成画面 -->
+      <section
+        id="screen-generate"
+        class="screen"
+        role="tabpanel"
+        aria-labelledby="tab-generate"
+        tabindex="0"
+        hidden
+      >
+        <div class="screen-content">
+          <div class="screen-heading">
+            <h2 class="screen-title">生成</h2>
+            <p class="screen-description">テンプレート展開やカテゴリ別ランダムでプロンプトを一括生成します。</p>
+          </div>
+
+          <div class="placeholder-section">
+            <div class="placeholder-card">
+              <div class="placeholder-badge">T4 実装予定</div>
+              <h3 class="placeholder-title">テンプレート入力・生成設定</h3>
+              <p class="placeholder-text">{a|b|c} 記法と __名前__ ワイルドカードの展開、生成個数（1〜100）およびシード指定を行います。</p>
+              <!-- TODO: T4にてテンプレートパーサー、シード付き乱数(mulberry32等)を実装 -->
+            </div>
+
+            <div class="placeholder-card">
+              <div class="placeholder-badge">T4 実装予定</div>
+              <h3 class="placeholder-title">カテゴリ別ランダム</h3>
+              <p class="placeholder-text">カテゴリ（髪型／衣装／背景／画風など）ごとのON/OFFと抽選でプロンプト文を自動生成します。</p>
+              <!-- TODO: T4にてカテゴリ別ランダム生成UIとロジックを実装 -->
+            </div>
+
+            <div class="placeholder-card">
+              <div class="placeholder-badge">T5 実装予定</div>
+              <h3 class="placeholder-title">生成結果一覧（Expand card）</h3>
+              <p class="placeholder-text">生成されたプロンプト群を折りたたみカードで一覧表示し、詳細展開・コピー・編集画面への受け渡しを行います。</p>
+              <!-- TODO: T5にてExpand card部品と各操作アクションを実装 -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2.3 管理画面 -->
+      <section
+        id="screen-manage"
+        class="screen"
+        role="tabpanel"
+        aria-labelledby="tab-manage"
+        tabindex="0"
+        hidden
+      >
+        <div class="screen-content">
+          <div class="screen-heading">
+            <h2 class="screen-title">管理</h2>
+            <p class="screen-description">ワイルドカード、スニペット、辞書状態、データの入出力を管理します。</p>
+          </div>
+
+          <div class="placeholder-section">
+            <div class="placeholder-card">
+              <div class="placeholder-badge">T6 実装予定</div>
+              <h3 class="placeholder-title">ワイルドカード管理</h3>
+              <p class="placeholder-text">ワイルドカードの名前と項目リスト（1行1項目）の追加・編集・削除を行います。</p>
+              <!-- TODO: T6にてワイルドカードCRUD（Expand card形式）を実装 -->
+            </div>
+
+            <div class="placeholder-card">
+              <div class="placeholder-badge">T6 実装予定</div>
+              <h3 class="placeholder-title">スニペット管理</h3>
+              <p class="placeholder-text">登録済みスニペット（名前とフレーズ）の追加・編集・削除を行います。</p>
+              <!-- TODO: T6にてスニペットCRUDを実装 -->
+            </div>
+
+            <div class="placeholder-card">
+              <div class="placeholder-badge">T3 / T6 実装予定</div>
+              <h3 class="placeholder-title">辞書情報</h3>
+              <p class="placeholder-text">Danbooru辞書の読み込み状態（件数、進捗）の表示および再読み込み操作を行います。</p>
+              <!-- TODO: T3/T6にて辞書情報表示と再読込トリガーを実装 -->
+            </div>
+
+            <div class="placeholder-card">
+              <div class="placeholder-badge">T6 実装予定</div>
+              <h3 class="placeholder-title">データ入出力（JSON）</h3>
+              <p class="placeholder-text">設定・ワイルドカード・スニペットをJSONファイルまたはテキスト貼り付けでバックアップ／復元します。</p>
+              <!-- TODO: T6にてJSONエクスポート／インポート処理を実装 -->
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
