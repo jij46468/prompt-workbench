@@ -1,13 +1,13 @@
 /**
  * プロンプト作業台 (Prompt Workbench)
- * T4: 生成画面ロジック (テンプレート展開・シード付き乱数・カテゴリ別ランダム)
+ * 生成画面ロジック (テンプレート展開・シード付き乱数・辞書ランダム)
  *
  * - テンプレート展開：{a|b|c} 選択肢記法（入れ子対応）
- * - ワイルドカード展開：__名前__ をデータストアから再帰展開（未定義はそのまま残し警告フラグ）
  * - シード付き乱数 (mulberry32) による再現可能な生成列
  * - 生成個数指定 (1〜100)
- * - カテゴリ別ランダムモード（ワイルドカード辞書からカテゴリON/OFF抽選）
- * - 生成結果データ生成と簡易一覧表示 (T5 Expand card で拡張予定)
+ * - 辞書ランダムモード (T8): 辞書全件を基本とし、Danbooruカテゴリと
+ *   人気上位%のフィルターで候補プールを絞って抽選する
+ * - 生成結果は Expand card 一覧で表示 (T5)
  */
 
 (function () {
@@ -57,24 +57,23 @@
   }
 
   /* ==========================================================================
-     2. テンプレートパーサー & ワイルドカード展開エンジン
+     2. テンプレートパーサー & 選択肢展開エンジン
      ========================================================================== */
 
   const MAX_RECURSION_DEPTH = 25;
 
   /**
-   * テキスト内の {a|b|c} 選択肢および __名前__ ワイルドカードを再帰的に展開する
+   * テキスト内の {a|b|c} 選択肢を再帰的に展開する
    * @param {string} text
-   * @param {Object} wildcardStore { [name: string]: string[] }
    * @param {function(): number} rng mulberry32 乱数関数
    * @param {number} depth 現在の再帰深度
-   * @param {Object} context 警告および使用追跡用オブジェクト
+   * @param {Object} context 警告用オブジェクト
    * @returns {string} 展開後の文字列
    */
-  function expandText(text, wildcardStore, rng, depth, context) {
+  function expandText(text, rng, depth, context) {
     if (typeof text !== 'string') return '';
     if (depth > MAX_RECURSION_DEPTH) {
-      context.warnings.add('ワイルドカードまたは選択肢の入れ子が深すぎるため展開を中断しました (上限25階層)');
+      context.warnings.add('選択肢の入れ子が深すぎるため展開を中断しました (上限25階層)');
       return text;
     }
 
@@ -113,7 +112,7 @@
             const randomIndex = Math.floor(rng() * options.length);
             const chosen = options[Math.min(randomIndex, options.length - 1)];
             // 選出された選択肢をさらに再帰展開
-            result += expandText(chosen, wildcardStore, rng, depth + 1, context);
+            result += expandText(chosen, rng, depth + 1, context);
           }
           i = j + 1;
         } else {
@@ -126,32 +125,6 @@
         i++;
       }
     }
-
-    // --- 2. ワイルドカード __名前__ を展開 ---
-    // 英数字・アンダースコア・ハイフン・スラッシュ・日本語を許容
-    const wildcardRegex = /__([a-zA-Z0-9\-/\u3000-\u9FFF](?:[a-zA-Z0-9_\-/\u3000-\u9FFF]*?[a-zA-Z0-9\-/\u3000-\u9FFF])?)__/g;
-
-    result = result.replace(wildcardRegex, (match, name) => {
-      // 既に未定義と判定されたワイルドカードはそのまま残す
-      if (context.undefinedWildcards.has(name)) {
-        return match;
-      }
-
-      const items = wildcardStore ? wildcardStore[name] : null;
-      if (!items || !Array.isArray(items) || items.length === 0) {
-        // SPEC §4: 未定義のワイルドカードはそのまま残し、結果カードに警告を出す
-        context.warnings.add(`未定義のワイルドカード: __${name}__`);
-        context.undefinedWildcards.add(name);
-        return match;
-      }
-
-      context.usedWildcards.add(name);
-      const randomIndex = Math.floor(rng() * items.length);
-      const chosenItem = items[Math.min(randomIndex, items.length - 1)];
-
-      // 項目自体に choice や別ワイルドカードが含まれる可能性があるため再帰展開
-      return expandText(chosenItem, wildcardStore, rng, depth + 1, context);
-    });
 
     return result;
   }
@@ -176,91 +149,36 @@
   /**
    * テンプレートから1つのプロンプトを展開
    * @param {string} template
-   * @param {Object} wildcardStore
    * @param {number} seed
-   * @returns {Object} { prompt, seed, warnings, usedWildcards }
+   * @returns {Object} { prompt, seed, warnings }
    */
-  function expandTemplate(template, wildcardStore, seed) {
+  function expandTemplate(template, seed) {
     const rng = createMulberry32(seed);
     const context = {
-      warnings: new Set(),
-      usedWildcards: new Set(),
-      undefinedWildcards: new Set()
+      warnings: new Set()
     };
 
-    const raw = expandText(template, wildcardStore, rng, 0, context);
+    const raw = expandText(template, rng, 0, context);
     const cleaned = cleanPromptOutput(raw);
 
     return {
       prompt: cleaned,
       seed: seed,
       warnings: Array.from(context.warnings),
-      usedWildcards: Array.from(context.usedWildcards)
-    };
-  }
-
-  /**
-   * カテゴリ別ランダムモードから1つのプロンプトを生成
-   * @param {string[]} selectedCategories
-   * @param {string} basePrefix
-   * @param {Object} wildcardStore
-   * @param {number} seed
-   * @returns {Object} { prompt, seed, warnings, usedWildcards }
-   */
-  function generateCategoryPrompt(selectedCategories, basePrefix, wildcardStore, seed) {
-    const rng = createMulberry32(seed);
-    const context = {
-      warnings: new Set(),
-      usedWildcards: new Set(),
-      undefinedWildcards: new Set()
-    };
-
-    const parts = [];
-
-    // 固定プレフィックス（任意）の展開
-    const prefixTrimmed = (basePrefix || '').trim();
-    if (prefixTrimmed) {
-      const expandedPrefix = expandText(prefixTrimmed, wildcardStore, rng, 0, context);
-      if (expandedPrefix) {
-        parts.push(expandedPrefix);
-      }
-    }
-
-    // 選択された各カテゴリから1件ずつ抽選
-    for (const catName of selectedCategories) {
-      const items = wildcardStore ? wildcardStore[catName] : null;
-      if (items && Array.isArray(items) && items.length > 0) {
-        context.usedWildcards.add(catName);
-        const idx = Math.floor(rng() * items.length);
-        const item = items[Math.min(idx, items.length - 1)];
-        const expandedItem = expandText(item, wildcardStore, rng, 1, context);
-        if (expandedItem) {
-          parts.push(expandedItem);
-        }
-      }
-    }
-
-    const raw = parts.join(', ');
-    const cleaned = cleanPromptOutput(raw);
-
-    return {
-      prompt: cleaned,
-      seed: seed,
-      warnings: Array.from(context.warnings),
-      usedWildcards: Array.from(context.usedWildcards)
+      usedWildcards: []
     };
   }
 
   /**
    * 辞書ランダムモード (T7): 人気プールの構築
    * tags: dictionary.js のタグ配列 [{ name, category, count, aliases }]
-   * percent: 投稿数の上位 % (1〜100)
+   * percent: 投稿数の上位 % (1〜100、既定100＝全件)
    * categories: 対象 Danbooru カテゴリ番号の Set (空なら全カテゴリ)
    * 戻り値: 投稿数降順に並んだプール配列（tags 自体は変更しない）
    */
   function buildPopularityPool(tags, percent, categories) {
     const rawPct = Number(percent);
-    const pct = Math.min(100, Math.max(1, Number.isFinite(rawPct) ? rawPct : 10));
+    const pct = Math.min(100, Math.max(1, Number.isFinite(rawPct) ? rawPct : 100));
     const filtered = (categories && categories.size > 0)
       ? tags.filter(t => categories.has(t.category))
       : tags.slice();
@@ -292,12 +210,12 @@
      ========================================================================== */
 
   // 状態管理
-  let currentMode = 'template'; // 'template' | 'category' | 'dict'
+  let currentMode = 'template'; // 'template' | 'dict'
   let currentResults = [];
   let resultIdSeq = 1;
 
   // デフォルトテンプレート例（汎用タグのみ）
-  const DEFAULT_SAMPLE_TEMPLATE = '1girl, {short_hair|long_hair}, __衣装__, __背景__';
+  const DEFAULT_SAMPLE_TEMPLATE = '1girl, {short_hair|long_hair}, {smile|blush}, {outdoors|indoors}';
 
   /**
    * HTMLエスケープ
@@ -348,10 +266,8 @@
   function initGenerator() {
     // DOM 要素取得
     const genModeTemplateBtn = document.getElementById('genModeTemplateBtn');
-    const genModeCategoryBtn = document.getElementById('genModeCategoryBtn');
     const genModeDictBtn = document.getElementById('genModeDictBtn');
     const genTemplatePanel = document.getElementById('genTemplatePanel');
-    const genCategoryPanel = document.getElementById('genCategoryPanel');
     const genDictPanel = document.getElementById('genDictPanel');
     const genDictPercentInput = document.getElementById('genDictPercentInput');
     const genDictTagsInput = document.getElementById('genDictTagsInput');
@@ -362,15 +278,7 @@
     const genTemplateInput = document.getElementById('genTemplateInput');
     const genClearTemplateBtn = document.getElementById('genClearTemplateBtn');
     const syntaxChipChoice = document.getElementById('syntaxChipChoice');
-    const syntaxChipWildcard = document.getElementById('syntaxChipWildcard');
     const syntaxChipSample = document.getElementById('syntaxChipSample');
-
-    // カテゴリパネル要素
-    const genCategoryPrefix = document.getElementById('genCategoryPrefix');
-    const categoryActiveCounter = document.getElementById('categoryActiveCounter');
-    const categorySelectAllBtn = document.getElementById('categorySelectAllBtn');
-    const categoryDeselectAllBtn = document.getElementById('categoryDeselectAllBtn');
-    const categoryChecklist = document.getElementById('categoryChecklist');
 
     // 生成設定要素
     const genCountInput = document.getElementById('genCountInput');
@@ -406,7 +314,6 @@
 
       const modeBtns = [
         [genModeTemplateBtn, 'template'],
-        [genModeCategoryBtn, 'category'],
         [genModeDictBtn, 'dict']
       ];
       modeBtns.forEach(([btn, m]) => {
@@ -417,7 +324,6 @@
       });
 
       if (genTemplatePanel) genTemplatePanel.hidden = mode !== 'template';
-      if (genCategoryPanel) genCategoryPanel.hidden = mode !== 'category';
       if (genDictPanel) genDictPanel.hidden = mode !== 'dict';
 
       if (mode === 'dict') updateDictPoolInfo();
@@ -425,9 +331,6 @@
 
     if (genModeTemplateBtn) {
       genModeTemplateBtn.addEventListener('click', () => setMode('template'));
-    }
-    if (genModeCategoryBtn) {
-      genModeCategoryBtn.addEventListener('click', () => setMode('category'));
     }
     if (genModeDictBtn) {
       genModeDictBtn.addEventListener('click', () => setMode('dict'));
@@ -446,8 +349,8 @@
     }
 
     function getDictPercent() {
-      const v = genDictPercentInput ? Number(genDictPercentInput.value) : 10;
-      if (!Number.isFinite(v)) return 10;
+      const v = genDictPercentInput ? Number(genDictPercentInput.value) : 100;
+      if (!Number.isFinite(v)) return 100;
       return Math.min(100, Math.max(1, Math.round(v)));
     }
 
@@ -474,8 +377,10 @@
         return;
       }
       const minCount = pool[pool.length - 1].count;
-      genDictPoolInfo.textContent =
-        `候補プール: ${pool.length.toLocaleString()} 件（対象 ${allTags.length.toLocaleString()} 件中 上位 ${getDictPercent()}%、最低投稿数 ${minCount.toLocaleString()}）`;
+      const pct = getDictPercent();
+      genDictPoolInfo.textContent = pct >= 100
+        ? `候補プール: ${pool.length.toLocaleString()} 件（選択カテゴリの全件が候補、最低投稿数 ${minCount.toLocaleString()}）`
+        : `候補プール: ${pool.length.toLocaleString()} 件（対象 ${allTags.length.toLocaleString()} 件中 上位 ${pct}%、最低投稿数 ${minCount.toLocaleString()}）`;
     }
 
     if (genDictPercentInput) {
@@ -521,15 +426,6 @@
       });
     }
 
-    if (syntaxChipWildcard) {
-      syntaxChipWildcard.addEventListener('click', () => {
-        const store = window.PromptWorkbench?.store;
-        const names = store ? store.getWildcardNames() : [];
-        const sampleName = names.length > 0 ? names[0] : '名前';
-        insertIntoTemplate(`__${sampleName}__`);
-      });
-    }
-
     if (syntaxChipSample) {
       syntaxChipSample.addEventListener('click', () => {
         if (genTemplateInput) {
@@ -550,116 +446,6 @@
         }
       });
     }
-
-    /* ------------------------------------------------------------------------
-       3. カテゴリチェックリスト描画
-       ------------------------------------------------------------------------ */
-    function renderCategoryChecklist() {
-      if (!categoryChecklist) return;
-
-      const store = window.PromptWorkbench?.store;
-      const wildcards = store ? store.getWildcards() : {};
-      const categoryNames = Object.keys(wildcards);
-
-      // 既存のチェック状態を記憶
-      const previousChecks = new Set();
-      const currentInputs = categoryChecklist.querySelectorAll('input[type="checkbox"]');
-      if (currentInputs.length > 0) {
-        currentInputs.forEach(input => {
-          if (input.checked) previousChecks.add(input.value);
-        });
-      } else {
-        // 初回はすべてのカテゴリをON
-        categoryNames.forEach(n => previousChecks.add(n));
-      }
-
-      categoryChecklist.innerHTML = '';
-
-      if (categoryNames.length === 0) {
-        categoryChecklist.innerHTML = '<div class="category-empty-notice">登録されているワイルドカードがありません（管理画面で追加可能）</div>';
-        updateCategoryCountBadge();
-        return;
-      }
-
-      categoryNames.forEach((name, idx) => {
-        const items = wildcards[name] || [];
-        const isChecked = previousChecks.has(name);
-
-        const card = document.createElement('label');
-        card.className = `category-card${isChecked ? ' is-checked' : ''}`;
-        card.setAttribute('for', `cat_cb_${idx}`);
-
-        const previewText = items.slice(0, 3).join(', ') + (items.length > 3 ? '...' : '');
-
-        card.innerHTML = `
-          <input
-            type="checkbox"
-            id="cat_cb_${idx}"
-            class="category-checkbox"
-            value="${escapeHtml(name)}"
-            ${isChecked ? 'checked' : ''}
-          >
-          <div class="category-info">
-            <div class="category-title-row">
-              <span class="category-name">${escapeHtml(name)}</span>
-              <span class="category-items-count">${items.length}件</span>
-            </div>
-            <span class="category-preview-text">${escapeHtml(previewText)}</span>
-          </div>
-        `;
-
-        const checkbox = card.querySelector('input[type="checkbox"]');
-        if (checkbox) {
-          checkbox.addEventListener('change', () => {
-            card.classList.toggle('is-checked', checkbox.checked);
-            updateCategoryCountBadge();
-          });
-        }
-
-        categoryChecklist.appendChild(card);
-      });
-
-      updateCategoryCountBadge();
-    }
-
-    function updateCategoryCountBadge() {
-      if (!categoryActiveCounter || !categoryChecklist) return;
-      const total = categoryChecklist.querySelectorAll('input[type="checkbox"]').length;
-      const checked = categoryChecklist.querySelectorAll('input[type="checkbox"]:checked').length;
-      categoryActiveCounter.textContent = `${checked} / ${total} 選択中`;
-    }
-
-    if (categorySelectAllBtn) {
-      categorySelectAllBtn.addEventListener('click', () => {
-        if (!categoryChecklist) return;
-        const boxes = categoryChecklist.querySelectorAll('input[type="checkbox"]');
-        boxes.forEach(cb => {
-          cb.checked = true;
-          cb.closest('.category-card')?.classList.add('is-checked');
-        });
-        updateCategoryCountBadge();
-      });
-    }
-
-    if (categoryDeselectAllBtn) {
-      categoryDeselectAllBtn.addEventListener('click', () => {
-        if (!categoryChecklist) return;
-        const boxes = categoryChecklist.querySelectorAll('input[type="checkbox"]');
-        boxes.forEach(cb => {
-          cb.checked = false;
-          cb.closest('.category-card')?.classList.remove('is-checked');
-        });
-        updateCategoryCountBadge();
-      });
-    }
-
-    // ストアの変更を購読
-    if (window.PromptWorkbench?.store?.subscribeWildcards) {
-      window.PromptWorkbench.store.subscribeWildcards(() => {
-        renderCategoryChecklist();
-      });
-    }
-    renderCategoryChecklist();
 
     /* ------------------------------------------------------------------------
        4. 個数・シード設定コントローラー
@@ -733,8 +519,6 @@
        5. 生成実行ロジック
        ------------------------------------------------------------------------ */
     function runGeneration() {
-      const store = window.PromptWorkbench?.store;
-      const wildcards = store ? store.getWildcards() : {};
       const count = getCountValue();
       const rawSeedInput = genSeedInput ? genSeedInput.value.trim() : '';
       const baseSeed = parseSeedValue(rawSeedInput);
@@ -754,7 +538,7 @@
         // SPEC §4: 生成個数 1〜100 の生成列を展開（各回独立シード (baseSeed + i) 準拠）
         for (let i = 0; i < count; i++) {
           const itemSeed = (baseSeed + i) >>> 0;
-          const res = expandTemplate(template, wildcards, itemSeed);
+          const res = expandTemplate(template, itemSeed);
           newResults.push({
             id: `gen_res_${Date.now()}_${resultIdSeq++}`,
             index: i + 1,
@@ -766,38 +550,8 @@
             usedWildcards: res.usedWildcards
           });
         }
-      } else if (currentMode === 'category') {
-        // カテゴリ別ランダムモード
-        const prefix = genCategoryPrefix ? genCategoryPrefix.value : '';
-        const selectedCategories = [];
-        if (categoryChecklist) {
-          const checked = categoryChecklist.querySelectorAll('input[type="checkbox"]:checked');
-          checked.forEach(cb => selectedCategories.push(cb.value));
-        }
-
-        if (selectedCategories.length === 0 && !prefix.trim()) {
-          if (window.PromptWorkbench?.showToast) {
-            window.PromptWorkbench.showToast('対象カテゴリを1つ以上選択してください');
-          }
-          return;
-        }
-
-        for (let i = 0; i < count; i++) {
-          const itemSeed = (baseSeed + i) >>> 0;
-          const res = generateCategoryPrompt(selectedCategories, prefix, wildcards, itemSeed);
-          newResults.push({
-            id: `gen_res_${Date.now()}_${resultIdSeq++}`,
-            index: i + 1,
-            seed: itemSeed,
-            baseSeed: baseSeed,
-            mode: 'category',
-            prompt: res.prompt,
-            warnings: res.warnings,
-            usedWildcards: res.usedWildcards
-          });
-        }
       } else {
-        // 辞書ランダムモード (T7): 人気上位プールから重複なし抽選
+        // 辞書ランダムモード (T8): 全件を基本にフィルターで絞ったプールから重複なし抽選
         const dict = window.PromptWorkbenchDictionary;
         const status = dict && typeof dict.getStatus === 'function' ? dict.getStatus() : null;
         if (!dict || !status || status.status !== 'ready' || typeof dict.getAllTags !== 'function') {
@@ -1037,7 +791,6 @@
     createMulberry32,
     parseSeedValue,
     expandTemplate,
-    generateCategoryPrompt,
     buildPopularityPool,
     drawTagsFromPool,
     getResults: () => currentResults.map(r => ({ ...r })),

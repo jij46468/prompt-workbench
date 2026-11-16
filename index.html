@@ -213,7 +213,7 @@
         <div class="screen-content">
           <div class="screen-heading">
             <h2 class="screen-title">生成</h2>
-            <p class="screen-description">テンプレート展開、カテゴリ別ランダム、辞書の人気タグからのランダムでプロンプトを一括生成します。</p>
+            <p class="screen-description">テンプレート展開と、辞書全件を基本にフィルターで絞るランダムでプロンプトを一括生成します。</p>
           </div>
 
           <!-- 生成方式切り替え (セグメントボタン) -->
@@ -227,15 +227,6 @@
               aria-selected="true"
               aria-controls="genTemplatePanel"
             >テンプレート展開</button>
-            <button
-              type="button"
-              role="tab"
-              class="gen-mode-btn"
-              id="genModeCategoryBtn"
-              data-mode="category"
-              aria-selected="false"
-              aria-controls="genCategoryPanel"
-            >カテゴリ別ランダム</button>
             <button
               type="button"
               role="tab"
@@ -263,7 +254,7 @@
                 id="genTemplateInput"
                 class="gen-textarea"
                 rows="4"
-                placeholder="例: 1girl, {short_hair|long_hair}, __衣装__, __背景__"
+                placeholder="例: 1girl, {short_hair|long_hair}, {smile|blush}"
                 spellcheck="false"
               ></textarea>
             </div>
@@ -272,59 +263,18 @@
             <div class="gen-syntax-chips">
               <span class="gen-syntax-label">挿入:</span>
               <button type="button" class="syntax-chip" id="syntaxChipChoice" title="{a|b|c} 選択肢を挿入">{a|b}</button>
-              <button type="button" class="syntax-chip" id="syntaxChipWildcard" title="__名前__ ワイルドカード記法を挿入">__名前__</button>
               <button type="button" class="syntax-chip syntax-chip-sample" id="syntaxChipSample" title="汎用サンプルテンプレートを挿入">サンプル投入</button>
             </div>
             <div class="tag-input-hint">
-              <span>💡 {a|b} でいずれかを選択（入れ子可）、__名前__ で同名ワイルドカードを再帰展開</span>
+              <span>💡 {a|b} でいずれかを選択（入れ子可）</span>
             </div>
           </div>
 
-          <!-- モード2: カテゴリ別ランダムパネル -->
-          <div class="gen-panel" id="genCategoryPanel" role="tabpanel" aria-labelledby="genModeCategoryBtn" hidden>
-            <div class="gen-field-group">
-              <div class="section-header">
-                <label for="genCategoryPrefix" class="section-title">固定プレフィックス（任意）</label>
-              </div>
-              <input
-                type="text"
-                id="genCategoryPrefix"
-                class="gen-input-text"
-                placeholder="例: 1girl, solo, masterpiece (空欄可)"
-                autocomplete="off"
-                spellcheck="false"
-              >
-              <div class="tag-input-hint">
-                <span>💡 抽選された各カテゴリの先頭に結合されます（テンプレート記法も使用可）</span>
-              </div>
-            </div>
-
-            <div class="gen-field-group">
-              <div class="section-header">
-                <div class="section-title-wrap">
-                  <span class="section-title">対象カテゴリ</span>
-                  <span class="tag-counter" id="categoryActiveCounter">0 選択中</span>
-                </div>
-                <div class="section-tools">
-                  <button type="button" class="btn-text-action" id="categorySelectAllBtn">全選択</button>
-                  <button type="button" class="btn-text-action" id="categoryDeselectAllBtn">全解除</button>
-                </div>
-              </div>
-
-              <div class="category-checkbox-grid" id="categoryChecklist" role="group" aria-label="生成対象カテゴリ一覧">
-                <!-- JavaScriptで動的描画（ワイルドカードストアのキー群） -->
-              </div>
-              <div class="tag-input-hint">
-                <span>💡 ONの各カテゴリから1件ずつ抽選し、カンマ区切りで1文を組み立てます</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- モード3: 辞書ランダムパネル (T7) -->
+          <!-- モード2: 辞書ランダムパネル (T7→T8: 全件デフォルト) -->
           <div class="gen-panel" id="genDictPanel" role="tabpanel" aria-labelledby="genModeDictBtn" hidden>
             <div class="gen-field-group">
               <div class="section-header">
-                <span class="section-title">人気フィルター（投稿数の上位から抽選）</span>
+                <span class="section-title">フィルター（全件が基本、必要に応じて絞る）</span>
               </div>
               <div class="gen-settings-row">
                 <div class="gen-setting-col">
@@ -335,7 +285,7 @@
                     class="gen-input-number"
                     min="1"
                     max="100"
-                    value="10"
+                    value="100"
                     aria-label="人気フィルター上位パーセント"
                   >
                 </div>
@@ -371,8 +321,8 @@
                     <span class="category-preview-text">general（外見・衣装・ポーズ等）</span>
                   </div>
                 </label>
-                <label class="category-card" for="dict_cb_4">
-                  <input type="checkbox" id="dict_cb_4" class="category-checkbox" value="4">
+                <label class="category-card is-checked" for="dict_cb_4">
+                  <input type="checkbox" id="dict_cb_4" class="category-checkbox" checked value="4">
                   <div class="category-info">
                     <div class="category-title-row">
                       <span class="category-name">キャラクター</span>
@@ -380,8 +330,8 @@
                     <span class="category-preview-text">character（固有キャラ名）</span>
                   </div>
                 </label>
-                <label class="category-card" for="dict_cb_3">
-                  <input type="checkbox" id="dict_cb_3" class="category-checkbox" value="3">
+                <label class="category-card is-checked" for="dict_cb_3">
+                  <input type="checkbox" id="dict_cb_3" class="category-checkbox" checked value="3">
                   <div class="category-info">
                     <div class="category-title-row">
                       <span class="category-name">著作権（作品）</span>
@@ -389,8 +339,8 @@
                     <span class="category-preview-text">copyright（作品・シリーズ名）</span>
                   </div>
                 </label>
-                <label class="category-card" for="dict_cb_1">
-                  <input type="checkbox" id="dict_cb_1" class="category-checkbox" value="1">
+                <label class="category-card is-checked" for="dict_cb_1">
+                  <input type="checkbox" id="dict_cb_1" class="category-checkbox" checked value="1">
                   <div class="category-info">
                     <div class="category-title-row">
                       <span class="category-name">アーティスト</span>
@@ -398,8 +348,8 @@
                     <span class="category-preview-text">artist（絵師名）</span>
                   </div>
                 </label>
-                <label class="category-card" for="dict_cb_5">
-                  <input type="checkbox" id="dict_cb_5" class="category-checkbox" value="5">
+                <label class="category-card is-checked" for="dict_cb_5">
+                  <input type="checkbox" id="dict_cb_5" class="category-checkbox" checked value="5">
                   <div class="category-info">
                     <div class="category-title-row">
                       <span class="category-name">メタ</span>
@@ -409,7 +359,7 @@
                 </label>
               </div>
               <div class="tag-input-hint">
-                <span>💡 選んだカテゴリの中で人気上位のタグから、重複なしで抽選します</span>
+                <span>💡 初期状態は全カテゴリ・上位100%＝全件が候補です。フィルターで絞って調整できます</span>
               </div>
             </div>
           </div>
@@ -503,13 +453,10 @@
         <div class="screen-content">
           <div class="screen-heading">
             <h2 class="screen-title">管理</h2>
-            <p class="screen-description">ワイルドカード、スニペット、辞書状態、データの入出力を管理します。</p>
+            <p class="screen-description">スニペット、辞書状態、データの入出力を管理します。</p>
           </div>
 
           <div class="placeholder-section">
-            <!-- 2.3 ワイルドカード管理 (T6 実装, manage.js が描画) -->
-            <div id="wildcardManageRoot"></div>
-
             <!-- 2.3 スニペット管理 (T6 実装, manage.js が描画) -->
             <div id="snippetManageRoot"></div>
 

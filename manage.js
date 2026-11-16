@@ -1,6 +1,7 @@
 /**
  * プロンプト作業台 (Prompt Workbench)
- * T6: 管理画面（ワイルドカード／スニペット CRUD、データ入出力）
+ * 管理画面（スニペット CRUD、データ入出力）
+ * T8: ワイルドカード管理は廃止（辞書ランダムへ移行）
  *     ＋ 編集画面のスニペット挿入一覧
  *
  * - 保存先は localStorage のみ（store.js 経由）
@@ -19,36 +20,23 @@
   const EXPORT_APP_ID = 'prompt-workbench';
   const EXPORT_VERSION = 1;
 
-  function buildExportObject(wildcards, snippets) {
+  function buildExportObject(snippets) {
     return {
       app: EXPORT_APP_ID,
       version: EXPORT_VERSION,
       exportedAt: new Date().toISOString(),
-      wildcards: wildcards || {},
       snippets: Array.isArray(snippets) ? snippets : []
     };
   }
 
   /**
-   * 取り込みJSONを検証し、正規化した { wildcards, snippets } を返す。
+   * 取り込みJSONを検証し、正規化した { snippets } を返す。
    * 形式が不正な場合は Error を投げる。
+   * 旧形式（wildcards を含むバックアップ）の wildcards は無視する。
    */
   function parseImportData(data) {
     if (!data || typeof data !== 'object' || Array.isArray(data)) {
       throw new Error('JSONのルートがオブジェクトではありません');
-    }
-
-    const wildcards = {};
-    if (data.wildcards !== undefined) {
-      if (!data.wildcards || typeof data.wildcards !== 'object' || Array.isArray(data.wildcards)) {
-        throw new Error('wildcards の形式が不正です');
-      }
-      for (const [name, items] of Object.entries(data.wildcards)) {
-        if (!Array.isArray(items)) {
-          throw new Error(`ワイルドカード「${name}」の項目が配列ではありません`);
-        }
-        wildcards[name] = items.map((x) => String(x).trim()).filter((x) => x.length > 0);
-      }
     }
 
     const snippets = [];
@@ -68,7 +56,7 @@
       }
     }
 
-    return { wildcards, snippets };
+    return { snippets };
   }
 
   /**
@@ -153,93 +141,7 @@
     return { card, content: card.querySelector('.manage-card-content') };
   }
 
-  /* ------------------------------------------------------------------------
-     ワイルドカード管理
-     ------------------------------------------------------------------------ */
-  function renderWildcardManage() {
-    const root = document.getElementById('wildcardManageRoot');
-    const st = store();
-    if (!root || !st) return;
-
-    const wildcards = st.getWildcards();
-    const names = Object.keys(wildcards).sort((a, b) => a.localeCompare(b, 'ja'));
-
-    root.innerHTML = '';
-    const heading = document.createElement('div');
-    heading.className = 'manage-section-heading';
-    heading.innerHTML = `<h3 class="manage-section-title">ワイルドカード管理</h3><span class="tag-counter">${names.length} 件</span>`;
-    root.appendChild(heading);
-
-    const list = document.createElement('div');
-    list.className = 'manage-card-list';
-    root.appendChild(list);
-
-    // 新規追加カード
-    {
-      const { card, content } = createExpandCard('wc-new', '＋ 新規ワイルドカード', '');
-      content.innerHTML = `
-        <label class="manage-field-label" for="wcNewName">名前（__名前__ で参照）</label>
-        <input type="text" class="manage-input" id="wcNewName" placeholder="例: 小物" autocomplete="off">
-        <label class="manage-field-label" for="wcNewItems">項目（1行に1項目）</label>
-        <textarea class="manage-textarea" id="wcNewItems" rows="5" placeholder="1行に1項目ずつ入力"></textarea>
-        <div class="manage-actions">
-          <button type="button" class="btn-manage-primary" id="wcAddBtn">追加する</button>
-        </div>
-      `;
-      content.querySelector('#wcAddBtn').addEventListener('click', () => {
-        const name = content.querySelector('#wcNewName').value.trim();
-        const items = content.querySelector('#wcNewItems').value
-          .split('\n').map((s) => s.trim()).filter(Boolean);
-        if (!name) { toast('名前を入力してください'); return; }
-        if (items.length === 0) { toast('項目を1つ以上入力してください'); return; }
-        if (st.getWildcard(name)) {
-          if (!window.confirm(`ワイルドカード「${name}」は既にあります。上書きしますか？`)) return;
-        }
-        st.setWildcard(name, items);
-        expandedIds.add('wc:' + name);
-        toast(`ワイルドカード「${name}」を追加しました`);
-        renderWildcardManage();
-      });
-      list.appendChild(card);
-    }
-
-    // 既存ワイルドカードのカード
-    for (const name of names) {
-      const items = Array.isArray(wildcards[name]) ? wildcards[name] : [];
-      const { card, content } = createExpandCard(
-        'wc:' + name,
-        `__${escapeHtml(name)}__`,
-        `${items.length} 項目`
-      );
-      const taId = 'wcItems_' + Math.random().toString(36).slice(2, 9);
-      content.innerHTML = `
-        <label class="manage-field-label" for="${taId}">項目（1行に1項目）</label>
-        <textarea class="manage-textarea" id="${taId}" rows="6">${escapeHtml(items.join('\n'))}</textarea>
-        <div class="manage-actions">
-          <button type="button" class="btn-manage-primary" data-act="save">保存</button>
-          <button type="button" class="btn-manage-danger" data-act="del">削除</button>
-        </div>
-      `;
-      content.querySelector('[data-act="save"]').addEventListener('click', () => {
-        const newItems = content.querySelector('textarea').value
-          .split('\n').map((s) => s.trim()).filter(Boolean);
-        if (newItems.length === 0) { toast('項目を1つ以上入力してください（削除は「削除」ボタンから）'); return; }
-        st.setWildcard(name, newItems);
-        toast(`「${name}」を保存しました（${newItems.length} 項目）`);
-        renderWildcardManage();
-      });
-      content.querySelector('[data-act="del"]').addEventListener('click', () => {
-        if (!window.confirm(`ワイルドカード「${name}」を削除しますか？`)) return;
-        st.deleteWildcard(name);
-        expandedIds.delete('wc:' + name);
-        toast(`「${name}」を削除しました`);
-        renderWildcardManage();
-      });
-      list.appendChild(card);
-    }
-  }
-
-  /* ------------------------------------------------------------------------
+  /* -+
      スニペット管理
      ------------------------------------------------------------------------ */
   function renderSnippetManage() {
@@ -341,19 +243,13 @@
   function currentExportJson() {
     const st = store();
     if (!st) return '{}';
-    return JSON.stringify(buildExportObject(st.getWildcards(), st.getSnippets()), null, 2);
+    return JSON.stringify(buildExportObject(st.getSnippets()), null, 2);
   }
 
   function applyImport(data) {
     const st = store();
     if (!st) throw new Error('ストアが初期化されていません');
     const parsed = parseImportData(data);
-
-    let wcCount = 0;
-    for (const [name, items] of Object.entries(parsed.wildcards)) {
-      st.setWildcard(name, items);
-      wcCount++;
-    }
 
     let snipCount = 0;
     if (parsed.snippets.length > 0) {
@@ -362,7 +258,7 @@
       st.saveSnippets(merged);
     }
 
-    return { wcCount, snipCount };
+    return { snipCount };
   }
 
   function renderDataIo() {
@@ -376,9 +272,9 @@
     heading.innerHTML = `<h3 class="manage-section-title">データ入出力（JSON）</h3>`;
     root.appendChild(heading);
 
-    const { card, content } = createExpandCard('io', 'バックアップ / 復元', 'ワイルドカード＋スニペット');
+    const { card, content } = createExpandCard('io', 'バックアップ / 復元', 'スニペット');
     content.innerHTML = `
-      <p class="manage-note">書き出し：現在のワイルドカードとスニペットを JSON で保存します。</p>
+      <p class="manage-note">書き出し：現在のスニペットを JSON で保存します。</p>
       <div class="manage-actions">
         <button type="button" class="btn-manage-primary" data-act="download">JSONをダウンロード</button>
         <button type="button" class="btn-manage-sub" data-act="copy">JSONをコピー</button>
@@ -386,7 +282,7 @@
       <label class="manage-field-label">現在のデータ（JSON）</label>
       <textarea class="manage-textarea manage-json-view" data-f="exportView" rows="6" readonly></textarea>
 
-      <p class="manage-note">取り込み：同名のワイルドカード／スニペットは上書き、それ以外は追加されます。</p>
+      <p class="manage-note">取り込み：同名のスニペットは上書き、それ以外は追加されます。</p>
       <label class="manage-field-label">ファイルから取り込む（複数選択可・追加式）</label>
       <input type="file" class="manage-file-input" data-f="file" accept=".json,application/json" multiple>
       <div class="manage-file-list" data-f="fileList"></div>
@@ -492,7 +388,7 @@
       try {
         const r = applyImport(JSON.parse(text));
         refreshAll();
-        toast(`取り込みました（ワイルドカード ${r.wcCount} 件 / スニペット ${r.snipCount} 件）`);
+        toast(`取り込みました（スニペット ${r.snipCount} 件）`);
       } catch (e) {
         toast(`取り込みエラー: ${e.message}`);
       }
@@ -500,7 +396,6 @@
   }
 
   function refreshAll() {
-    renderWildcardManage();
     renderSnippetManage();
     renderDataIo();
     renderSnippetList();
@@ -545,7 +440,6 @@
      初期化
      ------------------------------------------------------------------------ */
   function initManage() {
-    renderWildcardManage();
     renderSnippetManage();
     renderDataIo();
     renderSnippetList();
