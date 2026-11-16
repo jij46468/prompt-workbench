@@ -1593,3 +1593,108 @@ body {
   line-height: 1.4;
 }
 
+
+/* ==========================================================================
+   T5 Expand card（生成結果, SPEC §3.3）
+   ========================================================================== */
+
+.gen-result-card.expand-card {
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+}
+
+.expand-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  font-family: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.expand-card-header:active {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.gen-result-preview {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.85rem;
+  color: var(--color-text-sub);
+}
+
+.expand-card-chevron {
+  flex: none;
+  color: var(--color-text-muted);
+  transition: transform 320ms var(--ease-spring);
+}
+
+.expand-card.is-expanded .expand-card-chevron {
+  transform: rotate(180deg);
+}
+
+.expand-card-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 320ms var(--ease-spring);
+}
+
+.expand-card.is-expanded .expand-card-body {
+  grid-template-rows: 1fr;
+}
+
+.expand-card-body-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.expand-card-content {
+  padding: 0 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gen-result-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-send-editor {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  min-height: 32px;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-sub);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-send-editor:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+  color: var(--color-text-main);
+}
+
+.btn-send-editor:active {
+  background-color: rgba(255, 255, 255, 0.16);
+}

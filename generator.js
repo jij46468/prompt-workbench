@@ -695,8 +695,34 @@
     }
 
     /* ------------------------------------------------------------------------
-       6. 生成結果リスト描画 (T4 簡易一覧 / T5 Expand card で拡張予定)
+       6. 生成結果リスト描画 (T5 Expand card, SPEC §3.3)
+       - 折りたたみ時: タグの先頭部分＋シード等のメタ情報を 1 行で表示
+       - 展開時: プロンプト全文、警告、コピー、「編集へ送る」
+       - 複数カードを同時に開いてよい
        ------------------------------------------------------------------------ */
+    const expandedResultIds = new Set();
+
+    function previewText(prompt) {
+      if (!prompt) return '（空のプロンプト）';
+      const tags = prompt.split(',').map(s => s.trim()).filter(Boolean);
+      if (tags.length <= 3) return prompt;
+      return tags.slice(0, 3).join(', ') + ' …';
+    }
+
+    function sendToEditor(item) {
+      const wb = window.PromptWorkbench;
+      if (!wb || typeof wb.addTag !== 'function') return;
+      const tags = (item.prompt || '').split(',').map(s => s.trim()).filter(Boolean);
+      if (tags.length === 0) return;
+      if (typeof wb.clearAllTags === 'function') wb.clearAllTags();
+      tags.forEach(t => wb.addTag(t));
+      const editTab = document.getElementById('tab-edit');
+      if (editTab) editTab.click();
+      if (typeof wb.showToast === 'function') {
+        wb.showToast(`プロンプト #${item.index} を編集画面に読み込みました`);
+      }
+    }
+
     function renderResultsList() {
       if (!genResultsList || !genResultsEmpty) return;
 
@@ -724,38 +750,69 @@
 
       currentResults.forEach(item => {
         const card = document.createElement('div');
-        card.className = 'gen-result-card';
+        card.className = 'gen-result-card expand-card';
         card.setAttribute('data-id', item.id);
         card.setAttribute('role', 'listitem');
 
         const hasWarnings = item.warnings && item.warnings.length > 0;
+        const isExpanded = expandedResultIds.has(item.id);
+        if (isExpanded) card.classList.add('is-expanded');
 
         card.innerHTML = `
-          <div class="gen-result-header">
-            <div class="gen-result-meta">
-              <span class="gen-result-index">#${item.index}</span>
-              <span class="gen-result-seed">Seed: ${item.seed}</span>
-              ${hasWarnings ? '<span class="gen-result-warning-pill">⚠️ 未定義あり</span>' : ''}
-            </div>
-            <button type="button" class="btn-copy-result" aria-label="プロンプト #${item.index} をコピー">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-              <span>コピー</span>
-            </button>
-          </div>
+          <button type="button" class="expand-card-header" aria-expanded="${isExpanded ? 'true' : 'false'}" aria-label="プロンプト #${item.index} の詳細を開閉">
+            <span class="gen-result-index">#${item.index}</span>
+            <span class="gen-result-preview">${escapeHtml(previewText(item.prompt))}</span>
+            <span class="gen-result-seed">Seed: ${item.seed}</span>
+            ${hasWarnings ? '<span class="gen-result-warning-pill">⚠️ 未定義あり</span>' : ''}
+            <svg class="expand-card-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
 
-          <div class="gen-result-prompt">
-            ${escapeHtml(item.prompt || '（空のプロンプト）')}
-          </div>
+          <div class="expand-card-body">
+            <div class="expand-card-body-inner">
+              <div class="expand-card-content">
+                <div class="gen-result-prompt">
+                  ${escapeHtml(item.prompt || '（空のプロンプト）')}
+                </div>
 
-          ${hasWarnings ? `
-            <div class="gen-result-warnings">
-              ${item.warnings.map(w => `<span class="gen-warning-item">⚠️ ${escapeHtml(w)}</span>`).join('')}
+                ${hasWarnings ? `
+                  <div class="gen-result-warnings">
+                    ${item.warnings.map(w => `<span class="gen-warning-item">⚠️ ${escapeHtml(w)}</span>`).join('')}
+                  </div>
+                ` : ''}
+
+                <div class="gen-result-actions">
+                  <button type="button" class="btn-copy-result" aria-label="プロンプト #${item.index} をコピー">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    <span>コピー</span>
+                  </button>
+                  <button type="button" class="btn-send-editor" aria-label="プロンプト #${item.index} を編集画面へ送る">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M12 20h9"></path>
+                      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                    </svg>
+                    <span>編集へ送る</span>
+                  </button>
+                </div>
+              </div>
             </div>
-          ` : ''}
+          </div>
         `;
+
+        const headerBtn = card.querySelector('.expand-card-header');
+        headerBtn.addEventListener('click', () => {
+          const nowExpanded = card.classList.toggle('is-expanded');
+          headerBtn.setAttribute('aria-expanded', nowExpanded ? 'true' : 'false');
+          if (nowExpanded) {
+            expandedResultIds.add(item.id);
+          } else {
+            expandedResultIds.delete(item.id);
+          }
+        });
 
         const copyBtn = card.querySelector('.btn-copy-result');
         copyBtn.addEventListener('click', async () => {
@@ -775,6 +832,9 @@
             }
           }
         });
+
+        const sendBtn = card.querySelector('.btn-send-editor');
+        sendBtn.addEventListener('click', () => sendToEditor(item));
 
         genResultsList.appendChild(card);
       });
