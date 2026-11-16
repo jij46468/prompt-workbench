@@ -742,3 +742,286 @@ body {
   color: var(--color-text-sub);
   line-height: 1.5;
 }
+
+/* ==========================================================================
+   T3: Danbooru 辞書進捗表示 & 辞書情報カード (SPEC 3.2 / 2.3)
+   ========================================================================== */
+
+/* 編集画面：辞書進捗ステータスバー */
+.dict-status-bar {
+  background-color: rgba(15, 23, 42, 0.8);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 8px 12px;
+  margin-bottom: 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: background-color 0.2s ease, border-color 0.2s ease, padding 0.3s ease;
+}
+
+.dict-status-bar.is-ready {
+  border-color: rgba(34, 197, 94, 0.25);
+  background-color: rgba(15, 23, 42, 0.6);
+}
+
+.dict-status-bar.is-error {
+  border-color: rgba(239, 68, 68, 0.35);
+  background-color: rgba(30, 15, 20, 0.8);
+}
+
+.dict-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.dict-status-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.dict-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background-color: var(--color-accent);
+  box-shadow: 0 0 6px rgba(56, 189, 248, 0.6);
+  animation: dictPulse 1.4s ease-in-out infinite;
+}
+
+.dict-status-bar.is-ready .dict-status-dot {
+  background-color: #22c55e;
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+  animation: none;
+}
+
+.dict-status-bar.is-error .dict-status-dot {
+  background-color: #ef4444;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
+  animation: none;
+}
+
+@keyframes dictPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.85);
+  }
+}
+
+.dict-status-text {
+  font-size: 0.78rem;
+  color: var(--color-text-sub);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.dict-status-bar.is-error .dict-status-text {
+  color: #fca5a5;
+}
+
+.dict-status-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.dict-status-percent {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+.dict-status-bar.is-ready .dict-status-percent {
+  color: #4ade80;
+}
+
+.dict-status-bar.is-error .dict-status-percent {
+  color: #f87171;
+}
+
+.btn-dict-retry {
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid rgba(248, 113, 113, 0.5);
+  color: #fca5a5;
+  background-color: rgba(248, 113, 113, 0.15);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-dict-retry:hover {
+  background-color: rgba(248, 113, 113, 0.28);
+  border-color: #f87171;
+}
+
+/* 読み込み進捗トラック & バー */
+.dict-progress-track {
+  width: 100%;
+  height: 4px;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+  overflow: hidden;
+  transition: height 0.3s ease, opacity 0.3s ease;
+}
+
+.dict-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #0284c7, #38bdf8);
+  border-radius: 9999px;
+  transition: width 0.15s ease-out;
+}
+
+/* 準備完了後にコンパクト化 */
+.dict-status-bar.is-compact {
+  padding: 6px 10px;
+}
+
+.dict-status-bar.is-compact .dict-progress-track {
+  height: 0;
+  opacity: 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+/* 管理画面：辞書情報カード */
+.dict-info-card {
+  position: relative;
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border-card);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.dict-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.dict-card-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dict-manage-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  padding: 2px 10px;
+  flex-shrink: 0;
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--color-text-muted);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.dict-manage-badge.is-loading {
+  background-color: var(--color-accent-subtle);
+  color: var(--color-accent);
+  border-color: rgba(56, 189, 248, 0.3);
+}
+
+.dict-manage-badge.is-ready {
+  background-color: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.dict-manage-badge.is-error {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.dict-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin: 4px 0;
+}
+
+.dict-stat-item {
+  background-color: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dict-stat-label {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+.dict-stat-value {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-text-main);
+  word-break: break-word;
+}
+
+.dict-manage-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.btn-dict-reload {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  min-height: 42px; /* タップターゲット確保 */
+  background-color: rgba(56, 189, 248, 0.14);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 10px;
+  color: var(--color-accent);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-dict-reload:hover:not(:disabled) {
+  background-color: rgba(56, 189, 248, 0.22);
+  border-color: rgba(56, 189, 248, 0.5);
+  transform: translateY(-1px);
+}
+
+.btn-dict-reload:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-dict-reload:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+

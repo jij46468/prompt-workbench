@@ -670,6 +670,8 @@
       handleInputText(e.target.value);
     });
 
+    let searchReqSeq = 0;
+
     function handleInputText(val) {
       // カンマまたは読点が含まれている場合はタグ確定
       if (val.includes(',') || val.includes('、')) {
@@ -690,9 +692,14 @@
       if (!q) {
         closeDropdown();
       } else {
+        const currentReq = ++searchReqSeq;
         const res = fetchSuggestions(q);
         if (res instanceof Promise) {
-          res.then(items => renderSuggestions(items, q));
+          res.then(items => {
+            if (currentReq === searchReqSeq) {
+              renderSuggestions(items, q);
+            }
+          });
         } else {
           renderSuggestions(res, q);
         }
@@ -763,9 +770,14 @@
     tagInputField.addEventListener('focus', () => {
       const q = tagInputField.value.trim();
       if (q) {
+        const currentReq = ++searchReqSeq;
         const res = fetchSuggestions(q);
         if (res instanceof Promise) {
-          res.then(items => renderSuggestions(items, q));
+          res.then(items => {
+            if (currentReq === searchReqSeq) {
+              renderSuggestions(items, q);
+            }
+          });
         } else {
           renderSuggestions(res, q);
         }
@@ -822,6 +834,13 @@
     addTag: (text, isSnippet = false) => addTag(text, isSnippet),
     removeTag: (id) => removeTag(id),
     clearAllTags: () => clearAllTags(),
+    showToast: (msg) => showToast(msg),
+    setSuggestionsHeaderTitle: (title) => {
+      const titleEl = document.getElementById('suggestionsHeaderTitle');
+      if (titleEl) {
+        titleEl.textContent = title;
+      }
+    },
     setSuggestionsProvider: (provider) => {
       customSuggestionsProvider = typeof provider === 'function' ? provider : null;
     }

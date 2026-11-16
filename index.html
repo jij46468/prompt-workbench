@@ -93,6 +93,23 @@
               </div>
             </div>
 
+            <!-- 辞書読み込み進捗バー & 状態表示 (T3) -->
+            <div class="dict-status-bar" id="dictStatusBar" role="status" aria-live="polite">
+              <div class="dict-status-row">
+                <div class="dict-status-left">
+                  <span class="dict-status-dot" id="dictStatusDot" aria-hidden="true"></span>
+                  <span class="dict-status-text" id="dictStatusText">辞書データを準備中...</span>
+                </div>
+                <div class="dict-status-right">
+                  <span class="dict-status-percent" id="dictStatusPercent">0%</span>
+                  <button type="button" class="btn-dict-retry" id="dictRetryBtn" hidden>再試行</button>
+                </div>
+              </div>
+              <div class="dict-progress-track" id="dictProgressTrack">
+                <div class="dict-progress-bar" id="dictProgressBar" style="width: 0%;"></div>
+              </div>
+            </div>
+
             <div class="tag-input-container" id="tagInputContainer">
               <!-- チップと入力欄が並ぶ入力ボックス -->
               <div class="tag-input-box" id="tagInputBox">
@@ -122,7 +139,7 @@
                 hidden
               >
                 <div class="suggestions-header" id="suggestionsHeader">
-                  <span class="suggestions-header-title">補完候補 (仮辞書)</span>
+                  <span class="suggestions-header-title" id="suggestionsHeaderTitle">補完候補 (仮辞書)</span>
                   <span class="suggestions-count" id="suggestionsCount">0 件</span>
                 </div>
                 <div class="suggestions-list" id="suggestionsList" role="listbox"></div>
@@ -248,11 +265,44 @@
               <!-- TODO: T6にてスニペットCRUDを実装 -->
             </div>
 
-            <div class="placeholder-card">
-              <div class="placeholder-badge">T3 / T6 実装予定</div>
-              <h3 class="placeholder-title">辞書情報</h3>
-              <p class="placeholder-text">Danbooru辞書の読み込み状態（件数、進捗）の表示および再読み込み操作を行います。</p>
-              <!-- TODO: T3/T6にて辞書情報表示と再読込トリガーを実装 -->
+            <!-- 2.3 辞書情報 (T3 実装) -->
+            <div class="dict-info-card" id="dictInfoCard">
+              <div class="dict-card-header">
+                <div class="dict-card-title-group">
+                  <span class="placeholder-badge">T3 辞書機能</span>
+                  <h3 class="placeholder-title">辞書情報 (Danbooru)</h3>
+                </div>
+                <span class="dict-manage-badge" id="dictManageBadge">未読込</span>
+              </div>
+              <p class="placeholder-text">Danbooru辞書（約3.5MB, 140,782件）の読み込み状態および再読み込み操作を行います。</p>
+
+              <div class="dict-stats-grid">
+                <div class="dict-stat-item">
+                  <span class="dict-stat-label">登録タグ件数</span>
+                  <span class="dict-stat-value" id="dictStatTags">0 件</span>
+                </div>
+                <div class="dict-stat-item">
+                  <span class="dict-stat-label">索引区分数</span>
+                  <span class="dict-stat-value" id="dictStatKeys">0 区分</span>
+                </div>
+                <div class="dict-stat-item">
+                  <span class="dict-stat-label">データソース</span>
+                  <span class="dict-stat-value">Danbooru全件 (3.5MB)</span>
+                </div>
+                <div class="dict-stat-item">
+                  <span class="dict-stat-label">読み込み状態</span>
+                  <span class="dict-stat-value" id="dictStatState">準備中</span>
+                </div>
+              </div>
+
+              <div class="dict-manage-actions">
+                <button type="button" class="btn-dict-reload" id="dictReloadBtn">
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                  </svg>
+                  <span id="dictReloadBtnText">辞書を再読み込み</span>
+                </button>
+              </div>
             </div>
 
             <div class="placeholder-card">
@@ -268,5 +318,6 @@
   </div>
 
   <script src="app.js"></script>
+  <script src="dictionary.js"></script>
 </body>
 </html>
