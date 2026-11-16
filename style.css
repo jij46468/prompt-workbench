@@ -1698,3 +1698,230 @@ body {
 .btn-send-editor:active {
   background-color: rgba(255, 255, 255, 0.16);
 }
+
+/* ==========================================================================
+   T6 管理画面（CRUD・データ入出力）＋編集画面スニペット一覧
+   ========================================================================== */
+
+.manage-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 18px 0 10px;
+}
+
+.manage-section-heading:first-child {
+  margin-top: 0;
+}
+
+.manage-section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+}
+
+.manage-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.manage-card {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border-card);
+  border-radius: 12px;
+  overflow: hidden;
+  animation: screenFadeIn 200ms ease-out;
+}
+
+.manage-card-title {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-main);
+}
+
+.manage-card-meta {
+  flex: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.manage-card-content {
+  gap: 6px;
+}
+
+.manage-field-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-sub);
+  margin-top: 6px;
+}
+
+.manage-input,
+.manage-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-text-main);
+  font-family: inherit;
+  font-size: 16px; /* モバイルのフォーカス時ズーム防止 */
+  line-height: 1.5;
+  padding: 9px 10px;
+}
+
+.manage-textarea {
+  resize: vertical;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.85rem;
+}
+
+.manage-json-view {
+  font-size: 0.72rem;
+  color: var(--color-text-sub);
+}
+
+.manage-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.btn-manage-primary,
+.btn-manage-sub,
+.btn-manage-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  padding: 8px 14px;
+  min-height: 40px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-manage-primary {
+  background-color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+  color: #082f49;
+}
+
+.btn-manage-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-manage-sub {
+  background-color: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-sub);
+}
+
+.btn-manage-danger {
+  background-color: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
+.btn-manage-small {
+  min-height: 30px;
+  padding: 3px 10px;
+  font-size: 0.75rem;
+}
+
+.manage-note {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+  margin-top: 6px;
+}
+
+.manage-file-input {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 0.85rem;
+  color: var(--color-text-sub);
+  padding: 6px 0;
+}
+
+.manage-file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.manage-file-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
+.manage-file-name {
+  font-size: 0.8rem;
+  color: var(--color-text-sub);
+  word-break: break-all;
+}
+
+/* 編集画面：スニペット一覧 */
+.snippet-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.snippet-chip-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border-card);
+  border-radius: 10px;
+  padding: 10px 12px;
+  min-height: 44px;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.snippet-chip-btn:active {
+  background-color: var(--color-bg-card-hover);
+}
+
+.snippet-chip-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+.snippet-chip-content {
+  font-size: 0.8rem;
+  color: var(--color-text-sub);
+  word-break: break-word;
+}
+
+.snippet-empty {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}

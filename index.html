@@ -184,12 +184,18 @@
             <div class="copy-toast" id="copyToast" role="status" aria-live="polite" hidden></div>
           </div>
 
-          <div class="placeholder-section">
-            <div class="placeholder-card">
-              <div class="placeholder-badge">T6 実装予定</div>
-              <h3 class="placeholder-title">スニペット一覧</h3>
-              <p class="placeholder-text">よく使う固定フレーズを1タップでチップとして挿入できます（T6にて実装予定）。</p>
-              <!-- TODO: T6にてスニペット一覧と挿入ロジックを実装 -->
+          <!-- 2.1 スニペット一覧 (T6 実装) -->
+          <div class="edit-section" id="snippetSection">
+            <div class="section-header">
+              <div class="section-title-wrap">
+                <span class="section-title">スニペット</span>
+                <span class="tag-counter" id="snippetCounterBadge">0 件</span>
+              </div>
+            </div>
+            <div class="snippet-list" id="snippetList" role="list" aria-label="スニペット一覧"></div>
+            <p class="snippet-empty" id="snippetEmpty" hidden>スニペットはまだありません。管理画面で追加できます。</p>
+            <div class="tag-input-hint">
+              <span>💡 タップすると固定フレーズがチップとして挿入されます（色付きチップで表示）</span>
             </div>
           </div>
         </div>
@@ -398,19 +404,11 @@
           </div>
 
           <div class="placeholder-section">
-            <div class="placeholder-card">
-              <div class="placeholder-badge">T6 実装予定</div>
-              <h3 class="placeholder-title">ワイルドカード管理</h3>
-              <p class="placeholder-text">ワイルドカードの名前と項目リスト（1行1項目）の追加・編集・削除を行います。</p>
-              <!-- TODO: T6にてワイルドカードCRUD（Expand card形式）を実装 -->
-            </div>
+            <!-- 2.3 ワイルドカード管理 (T6 実装, manage.js が描画) -->
+            <div id="wildcardManageRoot"></div>
 
-            <div class="placeholder-card">
-              <div class="placeholder-badge">T6 実装予定</div>
-              <h3 class="placeholder-title">スニペット管理</h3>
-              <p class="placeholder-text">登録済みスニペット（名前とフレーズ）の追加・編集・削除を行います。</p>
-              <!-- TODO: T6にてスニペットCRUDを実装 -->
-            </div>
+            <!-- 2.3 スニペット管理 (T6 実装, manage.js が描画) -->
+            <div id="snippetManageRoot"></div>
 
             <!-- 2.3 辞書情報 (T3 実装) -->
             <div class="dict-info-card" id="dictInfoCard">
@@ -452,12 +450,8 @@
               </div>
             </div>
 
-            <div class="placeholder-card">
-              <div class="placeholder-badge">T6 実装予定</div>
-              <h3 class="placeholder-title">データ入出力（JSON）</h3>
-              <p class="placeholder-text">設定・ワイルドカード・スニペットをJSONファイルまたはテキスト貼り付けでバックアップ／復元します。</p>
-              <!-- TODO: T6にてJSONエクスポート／インポート処理を実装 -->
-            </div>
+            <!-- 2.3 データ入出力 (T6 実装, manage.js が描画) -->
+            <div id="dataIoRoot"></div>
           </div>
         </div>
       </section>
@@ -468,5 +462,6 @@
   <script src="dictionary.js"></script>
   <script src="store.js"></script>
   <script src="generator.js"></script>
+  <script src="manage.js"></script>
 </body>
 </html>
