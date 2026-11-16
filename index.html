@@ -210,26 +210,173 @@
             <p class="screen-description">テンプレート展開やカテゴリ別ランダムでプロンプトを一括生成します。</p>
           </div>
 
-          <div class="placeholder-section">
-            <div class="placeholder-card">
-              <div class="placeholder-badge">T4 実装予定</div>
-              <h3 class="placeholder-title">テンプレート入力・生成設定</h3>
-              <p class="placeholder-text">{a|b|c} 記法と __名前__ ワイルドカードの展開、生成個数（1〜100）およびシード指定を行います。</p>
-              <!-- TODO: T4にてテンプレートパーサー、シード付き乱数(mulberry32等)を実装 -->
+          <!-- 生成方式切り替え (セグメントボタン) -->
+          <div class="gen-mode-nav" role="tablist" aria-label="生成方式切り替え">
+            <button
+              type="button"
+              role="tab"
+              class="gen-mode-btn active"
+              id="genModeTemplateBtn"
+              data-mode="template"
+              aria-selected="true"
+              aria-controls="genTemplatePanel"
+            >テンプレート展開</button>
+            <button
+              type="button"
+              role="tab"
+              class="gen-mode-btn"
+              id="genModeCategoryBtn"
+              data-mode="category"
+              aria-selected="false"
+              aria-controls="genCategoryPanel"
+            >カテゴリ別ランダム</button>
+          </div>
+
+          <!-- モード1: テンプレート展開パネル -->
+          <div class="gen-panel" id="genTemplatePanel" role="tabpanel" aria-labelledby="genModeTemplateBtn">
+            <div class="section-header">
+              <div class="section-title-wrap">
+                <label for="genTemplateInput" class="section-title">テンプレート入力</label>
+              </div>
+              <div class="section-tools">
+                <button type="button" class="btn-text-action" id="genClearTemplateBtn">クリア</button>
+              </div>
             </div>
 
-            <div class="placeholder-card">
-              <div class="placeholder-badge">T4 実装予定</div>
-              <h3 class="placeholder-title">カテゴリ別ランダム</h3>
-              <p class="placeholder-text">カテゴリ（髪型／衣装／背景／画風など）ごとのON/OFFと抽選でプロンプト文を自動生成します。</p>
-              <!-- TODO: T4にてカテゴリ別ランダム生成UIとロジックを実装 -->
+            <div class="gen-textarea-wrap">
+              <textarea
+                id="genTemplateInput"
+                class="gen-textarea"
+                rows="4"
+                placeholder="例: 1girl, {short_hair|long_hair}, __衣装__, __背景__"
+                spellcheck="false"
+              ></textarea>
             </div>
 
-            <div class="placeholder-card">
-              <div class="placeholder-badge">T5 実装予定</div>
-              <h3 class="placeholder-title">生成結果一覧（Expand card）</h3>
-              <p class="placeholder-text">生成されたプロンプト群を折りたたみカードで一覧表示し、詳細展開・コピー・編集画面への受け渡しを行います。</p>
-              <!-- TODO: T5にてExpand card部品と各操作アクションを実装 -->
+            <!-- クイック構文チップ -->
+            <div class="gen-syntax-chips">
+              <span class="gen-syntax-label">挿入:</span>
+              <button type="button" class="syntax-chip" id="syntaxChipChoice" title="{a|b|c} 選択肢を挿入">{a|b}</button>
+              <button type="button" class="syntax-chip" id="syntaxChipWildcard" title="__名前__ ワイルドカード記法を挿入">__名前__</button>
+              <button type="button" class="syntax-chip syntax-chip-sample" id="syntaxChipSample" title="汎用サンプルテンプレートを挿入">サンプル投入</button>
+            </div>
+            <div class="tag-input-hint">
+              <span>💡 {a|b} でいずれかを選択（入れ子可）、__名前__ で同名ワイルドカードを再帰展開</span>
+            </div>
+          </div>
+
+          <!-- モード2: カテゴリ別ランダムパネル -->
+          <div class="gen-panel" id="genCategoryPanel" role="tabpanel" aria-labelledby="genModeCategoryBtn" hidden>
+            <div class="gen-field-group">
+              <div class="section-header">
+                <label for="genCategoryPrefix" class="section-title">固定プレフィックス（任意）</label>
+              </div>
+              <input
+                type="text"
+                id="genCategoryPrefix"
+                class="gen-input-text"
+                placeholder="例: 1girl, solo, masterpiece (空欄可)"
+                autocomplete="off"
+                spellcheck="false"
+              >
+              <div class="tag-input-hint">
+                <span>💡 抽選された各カテゴリの先頭に結合されます（テンプレート記法も使用可）</span>
+              </div>
+            </div>
+
+            <div class="gen-field-group">
+              <div class="section-header">
+                <div class="section-title-wrap">
+                  <span class="section-title">対象カテゴリ</span>
+                  <span class="tag-counter" id="categoryActiveCounter">0 選択中</span>
+                </div>
+                <div class="section-tools">
+                  <button type="button" class="btn-text-action" id="categorySelectAllBtn">全選択</button>
+                  <button type="button" class="btn-text-action" id="categoryDeselectAllBtn">全解除</button>
+                </div>
+              </div>
+
+              <div class="category-checkbox-grid" id="categoryChecklist" role="group" aria-label="生成対象カテゴリ一覧">
+                <!-- JavaScriptで動的描画（ワイルドカードストアのキー群） -->
+              </div>
+              <div class="tag-input-hint">
+                <span>💡 ONの各カテゴリから1件ずつ抽選し、カンマ区切りで1文を組み立てます</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 生成設定 (共通: 個数 & シード) -->
+          <div class="gen-settings-card">
+            <div class="gen-settings-row">
+              <!-- 生成個数 -->
+              <div class="gen-setting-col">
+                <label for="genCountInput" class="setting-label">生成個数 (1〜100)</label>
+                <div class="gen-stepper">
+                  <button type="button" class="btn-stepper" id="genCountDecBtn" aria-label="個数を減らす">−</button>
+                  <input
+                    type="number"
+                    id="genCountInput"
+                    class="gen-input-number"
+                    min="1"
+                    max="100"
+                    value="5"
+                    aria-label="生成個数"
+                  >
+                  <button type="button" class="btn-stepper" id="genCountIncBtn" aria-label="個数を増やす">+</button>
+                </div>
+              </div>
+
+              <!-- シード値 -->
+              <div class="gen-setting-col">
+                <label for="genSeedInput" class="setting-label">シード</label>
+                <div class="gen-seed-wrap">
+                  <input
+                    type="text"
+                    id="genSeedInput"
+                    class="gen-input-seed"
+                    placeholder="空欄＝ランダム"
+                    autocomplete="off"
+                    spellcheck="false"
+                  >
+                  <button type="button" class="btn-seed-random" id="genSeedDiceBtn" title="ランダムシード指定 / クリア">
+                    🎲
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 生成実行ボタン -->
+            <button type="button" class="btn-primary-generate" id="runGenerateBtn">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+              </svg>
+              <span id="runGenerateBtnText">プロンプト生成 (5件)</span>
+            </button>
+          </div>
+
+          <!-- 生成結果エリア (T4 簡易一覧 / T5 Expand card で拡張予定) -->
+          <div class="gen-results-section" id="genResultsSection">
+            <div class="section-header">
+              <div class="section-title-wrap">
+                <span class="section-title">生成結果</span>
+                <span class="tag-counter" id="genResultsBadge">0 件</span>
+              </div>
+              <div class="section-tools">
+                <button type="button" class="btn-text-action" id="genCopyAllBtn" disabled>全件コピー</button>
+                <button type="button" class="btn-text-action" id="genClearResultsBtn" disabled>クリア</button>
+              </div>
+            </div>
+
+            <div class="gen-results-container" id="genResultsContainer">
+              <!-- 空状態メッセージ -->
+              <div class="gen-results-empty" id="genResultsEmpty">
+                <p class="gen-empty-title">プロンプト生成待ち</p>
+                <p class="gen-empty-desc">上の「プロンプト生成」ボタンを押すと、ここに結果が一覧表示されます。</p>
+                <span class="gen-results-note">※ T5にてExpand card（詳細展開・コピー・編集画面へ送る）を実装予定</span>
+              </div>
+
+              <!-- 結果カード一覧 (T4 簡易一覧) -->
+              <div class="gen-results-list" id="genResultsList" role="list" hidden></div>
             </div>
           </div>
         </div>
@@ -319,5 +466,7 @@
 
   <script src="app.js"></script>
   <script src="dictionary.js"></script>
+  <script src="store.js"></script>
+  <script src="generator.js"></script>
 </body>
 </html>
