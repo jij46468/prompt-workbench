@@ -885,7 +885,8 @@
         sec.classList.toggle('is-collapsed', collapsed);
         toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
       };
-      apply(state[id] === true);
+      // 初期状態は折りたたみ。明示的に開いた場合（false 保存時）のみ展開で復元する
+      apply(state[id] !== false);
       toggle.addEventListener('click', () => {
         const now = !sec.classList.contains('is-collapsed');
         apply(now);
