@@ -213,7 +213,7 @@
         <div class="screen-content">
           <div class="screen-heading">
             <h2 class="screen-title">生成</h2>
-            <p class="screen-description">テンプレート展開と、辞書全件を基本にフィルターで絞るランダムでプロンプトを一括生成します。</p>
+            <p class="screen-description">テンプレート展開、辞書全件を基本にフィルターで絞るランダム、グループ別スロット合成でプロンプトを一括生成します。</p>
           </div>
 
           <!-- 生成方式切り替え (セグメントボタン) -->
@@ -236,6 +236,15 @@
               aria-selected="false"
               aria-controls="genDictPanel"
             >辞書ランダム</button>
+            <button
+              type="button"
+              role="tab"
+              class="gen-mode-btn"
+              id="genModeSlotBtn"
+              data-mode="slot"
+              aria-selected="false"
+              aria-controls="genSlotPanel"
+            >スロット</button>
           </div>
 
           <!-- モード1: テンプレート展開パネル -->
@@ -372,6 +381,31 @@
               </div>
               <div class="tag-input-hint">
                 <span>💡 初期状態は全カテゴリ・上位100%＝全件が候補です。フィルターで絞って調整できます</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- モード3: スロットパネル (T10) -->
+          <div class="gen-panel" id="genSlotPanel" role="tabpanel" aria-labelledby="genModeSlotBtn" hidden>
+            <div class="gen-field-group">
+              <div class="section-header">
+                <div class="section-title-wrap">
+                  <span class="section-title">スロット構成</span>
+                  <span class="tag-counter" id="slotActiveCounter">0 枠 有効</span>
+                </div>
+                <div class="section-tools">
+                  <button type="button" class="btn-text-action" id="slotResetBtn">プリセットに戻す</button>
+                </div>
+              </div>
+              <div class="slot-list" id="slotList" role="list" aria-label="スロット一覧"></div>
+              <div class="manage-actions">
+                <button type="button" class="btn-manage-sub" id="slotAddBtn">＋ スロット追加</button>
+              </div>
+              <div class="tag-input-hint">
+                <span id="slotInfo">グループ分類を読み込み中です…</span>
+              </div>
+              <div class="tag-input-hint">
+                <span>💡 有効な各枠から、グループ内の上位%プールから指定個数を引いて合成します（枠をまたいだ重複は除きます）</span>
               </div>
             </div>
           </div>

@@ -209,12 +209,67 @@
     return copy.slice(0, count).map(t => t.name);
   }
 
+  /**
+   * スロット方式 (T10): 1プロンプト分の合成
+   * slots: [{ groupId, count, percent, enabled }]
+   * getGroupSet: (groupId) => Set<tagName> | null
+   * 各有効スロットについて、グループ内タグを投稿数降順に並べ上位 percent% を
+   * プールとし、そこから count 件を抽選する。プロンプト内での重複は枠を
+   * またいでも除く。固定プレフィックスは付けない（要件確定事項）。
+   */
+  function generateSlotPrompt(slots, allTags, getGroupSet, seed) {
+    const rng = createMulberry32(seed);
+    const warnings = [];
+    const used = new Set();
+    const parts = [];
+
+    for (const slot of slots || []) {
+      if (!slot || !slot.enabled) continue;
+      const set = typeof getGroupSet === 'function' ? getGroupSet(slot.groupId) : null;
+      if (!set) {
+        warnings.push(`グループが見つかりません: ${slot.groupId}`);
+        continue;
+      }
+      const pool = buildPopularityPool(allTags, slot.percent, new Set(), set);
+      if (pool.length === 0) {
+        warnings.push(`候補プールが空です: ${slot.groupId}`);
+        continue;
+      }
+      const copy = pool.slice();
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(rng() * (i + 1));
+        const tmp = copy[i];
+        copy[i] = copy[j];
+        copy[j] = tmp;
+      }
+      const want = Math.min(3, Math.max(1, slot.count | 0 || 1));
+      let picked = 0;
+      for (const tag of copy) {
+        if (picked >= want) break;
+        if (used.has(tag.name)) continue;
+        used.add(tag.name);
+        parts.push(tag.name);
+        picked++;
+      }
+      if (picked < want) {
+        warnings.push(`プール不足のため ${picked} 件のみ抽選しました: ${slot.groupId}`);
+      }
+    }
+
+    return {
+      prompt: parts.join(', '),
+      seed: seed,
+      warnings: warnings,
+      usedWildcards: []
+    };
+  }
+
   /* ==========================================================================
      3. 生成画面 UI コントローラー
      ========================================================================== */
 
   // 状態管理
-  let currentMode = 'template'; // 'template' | 'dict'
+  let currentMode = 'template'; // 'template' | 'dict' | 'slot'
   let currentResults = [];
   let resultIdSeq = 1;
 
@@ -271,6 +326,13 @@
     // DOM 要素取得
     const genModeTemplateBtn = document.getElementById('genModeTemplateBtn');
     const genModeDictBtn = document.getElementById('genModeDictBtn');
+    const genModeSlotBtn = document.getElementById('genModeSlotBtn');
+    const genSlotPanel = document.getElementById('genSlotPanel');
+    const slotList = document.getElementById('slotList');
+    const slotAddBtn = document.getElementById('slotAddBtn');
+    const slotResetBtn = document.getElementById('slotResetBtn');
+    const slotActiveCounter = document.getElementById('slotActiveCounter');
+    const slotInfo = document.getElementById('slotInfo');
     const genTemplatePanel = document.getElementById('genTemplatePanel');
     const genDictPanel = document.getElementById('genDictPanel');
     const genDictPercentInput = document.getElementById('genDictPercentInput');
@@ -320,7 +382,8 @@
 
       const modeBtns = [
         [genModeTemplateBtn, 'template'],
-        [genModeDictBtn, 'dict']
+        [genModeDictBtn, 'dict'],
+        [genModeSlotBtn, 'slot']
       ];
       modeBtns.forEach(([btn, m]) => {
         if (!btn) return;
@@ -331,6 +394,7 @@
 
       if (genTemplatePanel) genTemplatePanel.hidden = mode !== 'template';
       if (genDictPanel) genDictPanel.hidden = mode !== 'dict';
+      if (genSlotPanel) genSlotPanel.hidden = mode !== 'slot';
 
       if (mode === 'dict') updateDictPoolInfo();
     }
@@ -340,6 +404,9 @@
     }
     if (genModeDictBtn) {
       genModeDictBtn.addEventListener('click', () => setMode('dict'));
+    }
+    if (genModeSlotBtn) {
+      genModeSlotBtn.addEventListener('click', () => setMode('slot'));
     }
 
     /* ------------------------------------------------------------------------
@@ -518,6 +585,175 @@
     }
 
     /* ------------------------------------------------------------------------
+       3b. スロット方式 (T10): スロット一覧の描画と編集
+       ------------------------------------------------------------------------ */
+    let slotOptionsPopulated = false;
+
+    function fillSlotGroupOptions(selectEl, selectedId) {
+      const api = window.PromptWorkbenchGroups;
+      const status = api && typeof api.getStatus === 'function' ? api.getStatus() : null;
+      selectEl.innerHTML = '';
+      if (!status || status.status !== 'ready') {
+        const opt = document.createElement('option');
+        opt.value = selectedId || '';
+        opt.textContent = selectedId ? selectedId : '（読み込み中）';
+        selectEl.appendChild(opt);
+        return;
+      }
+      const groups = api.getGroups().slice().sort((a, b) =>
+        (a.parent || '').localeCompare(b.parent || '') || b.tagCount - a.tagCount);
+      const byParent = new Map();
+      for (const g of groups) {
+        const key = g.parent || 'その他';
+        if (!byParent.has(key)) byParent.set(key, []);
+        byParent.get(key).push(g);
+      }
+      for (const [parent, gs] of byParent) {
+        const og = document.createElement('optgroup');
+        og.label = parent;
+        for (const g of gs) {
+          const opt = document.createElement('option');
+          opt.value = g.id;
+          opt.textContent = `${g.name}（${g.tagCount}件）`;
+          og.appendChild(opt);
+        }
+        selectEl.appendChild(og);
+      }
+      if (selectedId) selectEl.value = selectedId;
+    }
+
+    function getSlotsFromStore() {
+      const store = window.PromptWorkbench?.store;
+      return store && typeof store.getSlots === 'function' ? store.getSlots() : [];
+    }
+
+    function saveSlotsToStore(slots) {
+      const store = window.PromptWorkbench?.store;
+      if (store && typeof store.saveSlots === 'function') store.saveSlots(slots);
+      updateSlotCounter(slots);
+    }
+
+    function updateSlotCounter(slots) {
+      if (!slotActiveCounter) return;
+      const list = slots || getSlotsFromStore();
+      const active = list.filter(s => s.enabled).length;
+      slotActiveCounter.textContent = `${active} / ${list.length} 枠 有効`;
+    }
+
+    function renderSlotList() {
+      if (!slotList) return;
+      const slots = getSlotsFromStore();
+      slotList.innerHTML = '';
+
+      slots.forEach((slot, idx) => {
+        const row = document.createElement('div');
+        row.className = `slot-row${slot.enabled ? '' : ' is-disabled'}`;
+        row.setAttribute('role', 'listitem');
+        row.innerHTML = `
+          <div class="slot-row-head">
+            <input type="checkbox" class="slot-enabled" ${slot.enabled ? 'checked' : ''} aria-label="スロット ${idx + 1} の有効/無効">
+            <select class="slot-select gen-input-text" aria-label="スロット ${idx + 1} のグループ"></select>
+            <button type="button" class="btn-text-action slot-del-btn">削除</button>
+          </div>
+          <div class="slot-row-settings">
+            <label class="slot-setting">個数
+              <input type="number" class="gen-input-number slot-count" min="1" max="3" value="${slot.count}" aria-label="抽選個数 (1〜3)">
+            </label>
+            <label class="slot-setting">上位%
+              <input type="number" class="gen-input-number slot-percent" min="1" max="100" value="${slot.percent}" aria-label="人気フィルター上位パーセント (1〜100)">
+            </label>
+          </div>
+        `;
+
+        const enabledCb = row.querySelector('.slot-enabled');
+        const select = row.querySelector('.slot-select');
+        const countInput = row.querySelector('.slot-count');
+        const percentInput = row.querySelector('.slot-percent');
+        const delBtn = row.querySelector('.slot-del-btn');
+
+        fillSlotGroupOptions(select, slot.groupId);
+
+        enabledCb.addEventListener('change', () => {
+          const list = getSlotsFromStore();
+          if (list[idx]) { list[idx].enabled = enabledCb.checked; saveSlotsToStore(list); }
+          row.classList.toggle('is-disabled', !enabledCb.checked);
+        });
+        select.addEventListener('change', () => {
+          const list = getSlotsFromStore();
+          if (list[idx]) { list[idx].groupId = select.value; saveSlotsToStore(list); }
+        });
+        countInput.addEventListener('change', () => {
+          const v = Math.min(3, Math.max(1, Math.round(Number(countInput.value) || 1)));
+          countInput.value = String(v);
+          const list = getSlotsFromStore();
+          if (list[idx]) { list[idx].count = v; saveSlotsToStore(list); }
+        });
+        percentInput.addEventListener('change', () => {
+          const v = Math.min(100, Math.max(1, Math.round(Number(percentInput.value) || 100)));
+          percentInput.value = String(v);
+          const list = getSlotsFromStore();
+          if (list[idx]) { list[idx].percent = v; saveSlotsToStore(list); }
+        });
+        delBtn.addEventListener('click', () => {
+          const list = getSlotsFromStore();
+          list.splice(idx, 1);
+          saveSlotsToStore(list);
+          renderSlotList();
+        });
+
+        slotList.appendChild(row);
+      });
+
+      updateSlotCounter(slots);
+    }
+
+    if (slotAddBtn) {
+      slotAddBtn.addEventListener('click', () => {
+        const list = getSlotsFromStore();
+        const api = window.PromptWorkbenchGroups;
+        const groups = api && typeof api.getGroups === 'function' ? api.getGroups() : [];
+        list.push({
+          id: 'slot_' + Date.now().toString(36),
+          groupId: groups.length > 0 ? groups[0].id : '',
+          count: 1,
+          percent: 100,
+          enabled: true
+        });
+        saveSlotsToStore(list);
+        renderSlotList();
+      });
+    }
+
+    if (slotResetBtn) {
+      slotResetBtn.addEventListener('click', () => {
+        if (!window.confirm('スロット構成をプリセット（おすすめ6枠）に戻しますか？')) return;
+        const store = window.PromptWorkbench?.store;
+        if (store && typeof store.resetSlots === 'function') store.resetSlots();
+        renderSlotList();
+        if (window.PromptWorkbench?.showToast) {
+          window.PromptWorkbench.showToast('スロット構成をプリセットに戻しました');
+        }
+      });
+    }
+
+    renderSlotList();
+
+    // グループ分類の読み込み完了後にセレクトの選択肢を差し替える
+    const slotPopTimer = setInterval(() => {
+      const api = window.PromptWorkbenchGroups;
+      const status = api && typeof api.getStatus === 'function' ? api.getStatus() : null;
+      if (status && status.status === 'ready') {
+        clearInterval(slotPopTimer);
+        slotOptionsPopulated = true;
+        if (slotInfo) slotInfo.textContent = `Wiki分類 ${status.groupCount} グループから枠ごとに選べます`;
+        renderSlotList();
+      } else if (status && status.status === 'error') {
+        clearInterval(slotPopTimer);
+        if (slotInfo) slotInfo.textContent = 'グループ分類の読み込みに失敗しました（スロット方式は利用できません）';
+      }
+    }, 1000);
+
+    /* ------------------------------------------------------------------------
        4. 個数・シード設定コントローラー
        ------------------------------------------------------------------------ */
     function getCountValue() {
@@ -618,6 +854,46 @@
             prompt: res.prompt,
             warnings: res.warnings,
             usedWildcards: res.usedWildcards
+          });
+        }
+      } else if (currentMode === 'slot') {
+        // スロット方式 (T10): 有効な各枠から指定個数を引いて合成
+        const dict = window.PromptWorkbenchDictionary;
+        const dStatus = dict && typeof dict.getStatus === 'function' ? dict.getStatus() : null;
+        if (!dict || !dStatus || dStatus.status !== 'ready') {
+          if (window.PromptWorkbench?.showToast) {
+            window.PromptWorkbench.showToast('辞書の読み込みが完了していません');
+          }
+          return;
+        }
+        const gApi = window.PromptWorkbenchGroups;
+        const gStatus = gApi && typeof gApi.getStatus === 'function' ? gApi.getStatus() : null;
+        if (!gApi || !gStatus || gStatus.status !== 'ready') {
+          if (window.PromptWorkbench?.showToast) {
+            window.PromptWorkbench.showToast('グループ分類の読み込みが完了していません');
+          }
+          return;
+        }
+        const slots = getSlotsFromStore().filter(s => s.enabled);
+        if (slots.length === 0) {
+          if (window.PromptWorkbench?.showToast) {
+            window.PromptWorkbench.showToast('有効なスロットがありません');
+          }
+          return;
+        }
+        const allTags = dict.getAllTags();
+        for (let i = 0; i < count; i++) {
+          const itemSeed = (baseSeed + i) >>> 0;
+          const res = generateSlotPrompt(slots, allTags, (id) => gApi.getTagSet(id), itemSeed);
+          newResults.push({
+            id: `gen_res_${Date.now()}_${resultIdSeq++}`,
+            index: i + 1,
+            seed: itemSeed,
+            baseSeed: baseSeed,
+            mode: 'slot',
+            prompt: res.prompt,
+            warnings: res.warnings,
+            usedWildcards: []
           });
         }
       } else {
@@ -871,6 +1147,7 @@
     createMulberry32,
     parseSeedValue,
     expandTemplate,
+    generateSlotPrompt,
     buildPopularityPool,
     drawTagsFromPool,
     getResults: () => currentResults.map(r => ({ ...r })),

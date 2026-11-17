@@ -1925,3 +1925,65 @@ body {
   font-size: 0.85rem;
   color: var(--color-text-muted);
 }
+
+/* ==========================================================================
+   T10: スロット方式
+   ========================================================================== */
+.slot-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.slot-row {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border-card);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.slot-row.is-disabled {
+  opacity: 0.55;
+}
+
+.slot-row-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.slot-enabled {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+
+.slot-select {
+  flex: 1;
+  min-width: 0;
+  min-height: 40px;
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.slot-del-btn {
+  flex: none;
+}
+
+.slot-row-settings {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.slot-setting {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--color-text-sub);
+}
+
+.slot-setting .gen-input-number {
+  width: 72px;
+}

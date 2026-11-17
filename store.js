@@ -12,8 +12,22 @@
   'use strict';
 
   const STORAGE_KEYS = {
-    SNIPPETS: 'prompt_workbench_snippets'
+    SNIPPETS: 'prompt_workbench_snippets',
+    SLOTS: 'prompt_workbench_slots'
   };
+
+  /**
+   * スロット方式 (T10) の初期プリセット
+   * グループIDは data/tag-groups.json の id を指す（実在確認済み）。
+   */
+  const DEFAULT_SLOTS = [
+    { id: 'slot_1', groupId: 'tag_group:hair_styles', count: 1, percent: 100, enabled: true },
+    { id: 'slot_2', groupId: 'tag_group:eyes_tags', count: 1, percent: 100, enabled: true },
+    { id: 'slot_3', groupId: 'tag_group:face_tags', count: 1, percent: 100, enabled: true },
+    { id: 'slot_4', groupId: 'tag_group:attire', count: 1, percent: 100, enabled: true },
+    { id: 'slot_5', groupId: 'tag_group:backgrounds', count: 1, percent: 100, enabled: true },
+    { id: 'slot_6', groupId: 'list_of_poses', count: 1, percent: 100, enabled: true }
+  ];
 
   /**
    * 汎用サンプルスニペット
@@ -32,7 +46,9 @@
   ];
 
   let inMemorySnippets = null;
+  let inMemorySlots = null;
   const snippetSubscribers = new Set();
+  const slotSubscribers = new Set();
 
   /**
    * localStorage からスニペットを読み込み
@@ -85,8 +101,60 @@
     }
   }
 
+  /**
+   * localStorage からスロット構成を読み込み
+   * @returns {Array}
+   */
+  function loadSlots() {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        const json = localStorage.getItem(STORAGE_KEYS.SLOTS);
+        if (json) {
+          const parsed = JSON.parse(json);
+          if (Array.isArray(parsed)) {
+            inMemorySlots = parsed;
+            return inMemorySlots;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('localStorage read error for slots:', e);
+    }
+
+    inMemorySlots = JSON.parse(JSON.stringify(DEFAULT_SLOTS));
+    saveSlots(inMemorySlots);
+    return inMemorySlots;
+  }
+
+  /**
+   * スロット構成を localStorage に保存
+   * @param {Array} slots
+   */
+  function saveSlots(slots) {
+    inMemorySlots = Array.isArray(slots) ? slots : [];
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(STORAGE_KEYS.SLOTS, JSON.stringify(inMemorySlots));
+      }
+    } catch (e) {
+      console.warn('localStorage write error for slots:', e);
+    }
+    notifySlotSubscribers();
+  }
+
+  function notifySlotSubscribers() {
+    for (const sub of slotSubscribers) {
+      try {
+        sub(inMemorySlots);
+      } catch (err) {
+        console.error('Slot subscriber error:', err);
+      }
+    }
+  }
+
   // 初期化実行
   loadSnippets();
+  loadSlots();
 
   // PromptWorkbench 名前空間にエクスポート
   window.PromptWorkbench = window.PromptWorkbench || {};
@@ -101,6 +169,20 @@
     subscribeSnippets: (fn) => {
       snippetSubscribers.add(fn);
       return () => snippetSubscribers.delete(fn);
+    },
+    getSlots: () => {
+      if (!inMemorySlots) loadSlots();
+      return JSON.parse(JSON.stringify(inMemorySlots));
+    },
+    saveSlots: (slots) => {
+      saveSlots(slots);
+    },
+    resetSlots: () => {
+      saveSlots(JSON.parse(JSON.stringify(DEFAULT_SLOTS)));
+    },
+    subscribeSlots: (fn) => {
+      slotSubscribers.add(fn);
+      return () => slotSubscribers.delete(fn);
     }
   };
 })();
