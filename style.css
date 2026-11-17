@@ -381,6 +381,13 @@ body {
   will-change: transform, opacity;
 }
 
+.tag-chip-jp {
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
 @keyframes chipPopIn {
   from {
     transform: scale(0.82);
@@ -563,6 +570,14 @@ body {
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--color-text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.suggestion-jp {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1575,6 +1590,14 @@ body {
   color: var(--color-text-main);
   word-break: break-word;
   user-select: all;
+}
+
+.gen-result-jp {
+  margin-top: 4px;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--color-text-sub);
+  word-break: break-word;
 }
 
 .gen-result-warnings {

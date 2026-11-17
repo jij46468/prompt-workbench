@@ -389,6 +389,13 @@
       `;
 
       chip.appendChild(textSpan);
+      const jp = !tag.isSnippet && window.WBTranslations ? window.WBTranslations.get(tag.text) : null;
+      if (jp) {
+        const jpSpan = document.createElement('span');
+        jpSpan.className = 'tag-chip-jp';
+        jpSpan.textContent = jp;
+        chip.appendChild(jpSpan);
+      }
       chip.appendChild(removeBtn);
       tagChipsList.appendChild(chip);
     });
@@ -509,6 +516,7 @@
       const catClass = `cat-dot cat-dot-${catNumber}`;
       const catTitle = CATEGORY_NAMES[catNumber] || 'タグ';
       const countFormatted = formatCount(item.count);
+      const jp = window.WBTranslations ? window.WBTranslations.get(item.name) : null;
 
       row.innerHTML = `
         <div class="suggestion-left">
@@ -516,6 +524,7 @@
           <div class="suggestion-text-group">
             <span class="suggestion-name">${escapeHtml(item.name)}</span>
             ${item.matchedAlias ? `<span class="suggestion-alias">(${escapeHtml(item.matchedAlias)})</span>` : ''}
+            ${jp ? `<span class="suggestion-jp">${escapeHtml(jp)}</span>` : ''}
           </div>
         </div>
         <span class="suggestion-count">${countFormatted}</span>
@@ -845,6 +854,14 @@
       customSuggestionsProvider = typeof provider === 'function' ? provider : null;
     }
   };
+
+  // T11: 和訳データの読み込み完了後に、表示中のチップと候補へ和訳を反映する
+  window.addEventListener('wb-translations-ready', () => {
+    renderChips();
+    if (tagSuggestionsDropdown && !tagSuggestionsDropdown.hidden && currentSuggestions.length > 0) {
+      renderSuggestions(currentSuggestions, '');
+    }
+  });
 
   /* ==========================================================================
      初期化実行

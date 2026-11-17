@@ -36,3 +36,8 @@
   有効な各枠から指定個数（1〜3、枠ごと上位%でプール調整）を引いて合成。
   構成はプリセット6枠＋自由編集（localStorage保存、プリセット復帰あり）。
   固定プレフィックスなし、枠間重複は除外、シード再現性は既存方式と同じ。
+
+- T11 和訳表示：data/translations-jp.csv（50,885件、Civitai「Danbooru tag
+  complete csv」v2.0 の翻訳から先頭の日本語要素のみ抽出＋v1の欠け343件を
+  補完）を同梱し、補完候補・チップ・生成結果（和訳行）に日本語訳を表示。
+  生成は tools/translations/build.py、検証は同フォルダ VERIFICATION.md。

@@ -9,3 +9,6 @@
   GitHub を受け渡し場所にする。画面部品は DesignBookmark /motion から
   Tag input／Expand card／Tab pill の 3 部品を採用。
 - データは端末の localStorage のみに保存され、外部送信はしない。
+- 和訳データ（data/translations-jp.csv）の出典：Civitai「Danbooru tag
+  complete csv」（v2.0 の danbooru_translations_jp_anima29.csv を加工し、
+  v1 分で一部補完）。自動翻訳由来のため訳は目安。

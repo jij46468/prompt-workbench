@@ -322,6 +322,11 @@
   /**
    * 生成画面の初期化
    */
+  // T11: 和訳データの読み込み完了後に、表示中の生成結果へ和訳を反映する
+  window.addEventListener('wb-translations-ready', () => {
+    if (currentResults.length > 0) renderResultsList();
+  });
+
   function initGenerator() {
     // DOM 要素取得
     const genModeTemplateBtn = document.getElementById('genModeTemplateBtn');
@@ -1049,6 +1054,10 @@
                 <div class="gen-result-prompt">
                   ${escapeHtml(item.prompt || '（空のプロンプト）')}
                 </div>
+
+                ${(window.WBTranslations ? window.WBTranslations.translatePrompt(item.prompt) : '') ? `
+                  <div class="gen-result-jp">${escapeHtml(window.WBTranslations.translatePrompt(item.prompt))}</div>
+                ` : ''}
 
                 ${hasWarnings ? `
                   <div class="gen-result-warnings">
