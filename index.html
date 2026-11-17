@@ -309,6 +309,18 @@
 
             <div class="gen-field-group">
               <div class="section-header">
+                <span class="section-title">タググループ（Wikiの細分類）</span>
+              </div>
+              <select id="genGroupSelect" class="gen-input-text" aria-label="タググループで絞り込み">
+                <option value="">指定なし（全件）</option>
+              </select>
+              <div class="tag-input-hint">
+                <span id="genGroupInfo">グループ分類を読み込み中です…</span>
+              </div>
+            </div>
+
+            <div class="gen-field-group">
+              <div class="section-header">
                 <span class="section-title">対象カテゴリ (Danbooru)</span>
               </div>
               <div class="category-checkbox-grid" id="dictCategoryChecklist" role="group" aria-label="辞書カテゴリ一覧">
@@ -488,6 +500,10 @@
                   <span class="dict-stat-label">読み込み状態</span>
                   <span class="dict-stat-value" id="dictStatState">準備中</span>
                 </div>
+                <div class="dict-stat-item">
+                  <span class="dict-stat-label">タググループ分類</span>
+                  <span class="dict-stat-value" id="groupStatValue">読み込み中...</span>
+                </div>
               </div>
 
               <div class="dict-manage-actions">
@@ -510,6 +526,7 @@
 
   <script src="app.js"></script>
   <script src="dictionary.js"></script>
+  <script src="groups.js"></script>
   <script src="store.js"></script>
   <script src="generator.js"></script>
   <script src="manage.js"></script>

@@ -176,12 +176,16 @@
    * categories: 対象 Danbooru カテゴリ番号の Set (空なら全カテゴリ)
    * 戻り値: 投稿数降順に並んだプール配列（tags 自体は変更しない）
    */
-  function buildPopularityPool(tags, percent, categories) {
+  function buildPopularityPool(tags, percent, categories, groupTagSet) {
     const rawPct = Number(percent);
     const pct = Math.min(100, Math.max(1, Number.isFinite(rawPct) ? rawPct : 100));
+    let base = tags;
+    if (groupTagSet) {
+      base = base.filter(t => groupTagSet.has(t.name));
+    }
     const filtered = (categories && categories.size > 0)
-      ? tags.filter(t => categories.has(t.category))
-      : tags.slice();
+      ? base.filter(t => categories.has(t.category))
+      : base.slice();
     const sorted = filtered.slice().sort((a, b) => b.count - a.count);
     const size = Math.max(1, Math.ceil(sorted.length * pct / 100));
     return sorted.slice(0, size);
@@ -273,6 +277,8 @@
     const genDictTagsInput = document.getElementById('genDictTagsInput');
     const genDictPoolInfo = document.getElementById('genDictPoolInfo');
     const dictCategoryChecklist = document.getElementById('dictCategoryChecklist');
+    const genGroupSelect = document.getElementById('genGroupSelect');
+    const genGroupInfo = document.getElementById('genGroupInfo');
 
     // テンプレートパネル要素
     const genTemplateInput = document.getElementById('genTemplateInput');
@@ -360,6 +366,56 @@
       return Math.min(30, Math.max(1, Math.round(v)));
     }
 
+    function getDictGroupSet() {
+      if (!genGroupSelect || !genGroupSelect.value) return null;
+      const api = window.PromptWorkbenchGroups;
+      if (!api || typeof api.getTagSet !== 'function') return null;
+      return api.getTagSet(genGroupSelect.value);
+    }
+
+    function getDictGroupName() {
+      if (!genGroupSelect || !genGroupSelect.value) return '';
+      const opt = genGroupSelect.options[genGroupSelect.selectedIndex];
+      return opt ? opt.textContent.replace(/（\d+件）$/, '') : '';
+    }
+
+    let groupSelectPopulated = false;
+    function populateGroupSelect() {
+      if (groupSelectPopulated || !genGroupSelect) return;
+      const api = window.PromptWorkbenchGroups;
+      const status = api && typeof api.getStatus === 'function' ? api.getStatus() : null;
+      if (!status) return;
+      if (status.status === 'error') {
+        if (genGroupInfo) genGroupInfo.textContent = 'グループ分類の読み込みに失敗しました（絞り込みなしで利用できます）';
+        groupSelectPopulated = true;
+        return;
+      }
+      if (status.status !== 'ready') return;
+      const groups = api.getGroups().slice().sort((a, b) =>
+        (a.parent || '').localeCompare(b.parent || '') || b.tagCount - a.tagCount);
+      const byParent = new Map();
+      for (const g of groups) {
+        const key = g.parent || 'その他';
+        if (!byParent.has(key)) byParent.set(key, []);
+        byParent.get(key).push(g);
+      }
+      for (const [parent, gs] of byParent) {
+        const og = document.createElement('optgroup');
+        og.label = parent;
+        for (const g of gs) {
+          const opt = document.createElement('option');
+          opt.value = g.id;
+          opt.textContent = `${g.name}（${g.tagCount}件）`;
+          og.appendChild(opt);
+        }
+        genGroupSelect.appendChild(og);
+      }
+      if (genGroupInfo) {
+        genGroupInfo.textContent = `Wikiのテーマ別分類 ${groups.length} グループから絞れます（例: hair styles、backgrounds、attire）`;
+      }
+      groupSelectPopulated = true;
+    }
+
     function updateDictPoolInfo() {
       if (!genDictPoolInfo) return;
       const dict = window.PromptWorkbenchDictionary;
@@ -371,16 +427,19 @@
         return;
       }
       const allTags = dict.getAllTags();
-      const pool = buildPopularityPool(allTags, getDictPercent(), getDictSelectedCategories());
+      const groupSet = getDictGroupSet();
+      const pool = buildPopularityPool(allTags, getDictPercent(), getDictSelectedCategories(), groupSet);
       if (pool.length === 0) {
         genDictPoolInfo.textContent = '候補プールが空です（カテゴリを選択してください）';
         return;
       }
       const minCount = pool[pool.length - 1].count;
       const pct = getDictPercent();
+      const groupName = getDictGroupName();
+      const scope = groupName ? `グループ「${groupName}」内 ` : '';
       genDictPoolInfo.textContent = pct >= 100
-        ? `候補プール: ${pool.length.toLocaleString()} 件（選択カテゴリの全件が候補、最低投稿数 ${minCount.toLocaleString()}）`
-        : `候補プール: ${pool.length.toLocaleString()} 件（対象 ${allTags.length.toLocaleString()} 件中 上位 ${pct}%、最低投稿数 ${minCount.toLocaleString()}）`;
+        ? `候補プール: ${pool.length.toLocaleString()} 件（${scope}選択カテゴリの全件が候補、最低投稿数 ${minCount.toLocaleString()}）`
+        : `候補プール: ${pool.length.toLocaleString()} 件（${scope}対象 ${allTags.length.toLocaleString()} 件中 上位 ${pct}%、最低投稿数 ${minCount.toLocaleString()}）`;
     }
 
     if (genDictPercentInput) {
@@ -395,6 +454,17 @@
         });
       });
     }
+    if (genGroupSelect) {
+      genGroupSelect.addEventListener('change', updateDictPoolInfo);
+    }
+    populateGroupSelect();
+    const groupInfoTimer = setInterval(() => {
+      populateGroupSelect();
+      if (groupSelectPopulated) {
+        clearInterval(groupInfoTimer);
+        if (currentMode === 'dict') updateDictPoolInfo();
+      }
+    }, 1000);
     // 辞書の初回読み込み完了をプール情報へ反映（読み込み中のみ監視）
     const dictInfoTimer = setInterval(() => {
       const dict = window.PromptWorkbenchDictionary;
@@ -569,7 +639,17 @@
           return;
         }
 
-        const pool = buildPopularityPool(dict.getAllTags(), getDictPercent(), categories);
+        if (genGroupSelect && genGroupSelect.value) {
+          const gApi = window.PromptWorkbenchGroups;
+          const gStatus = gApi && typeof gApi.getStatus === 'function' ? gApi.getStatus() : null;
+          if (!gStatus || gStatus.status !== 'ready') {
+            if (window.PromptWorkbench?.showToast) {
+              window.PromptWorkbench.showToast('グループ分類の読み込みが完了していません');
+            }
+            return;
+          }
+        }
+        const pool = buildPopularityPool(dict.getAllTags(), getDictPercent(), categories, getDictGroupSet());
         if (pool.length === 0) {
           if (window.PromptWorkbench?.showToast) {
             window.PromptWorkbench.showToast('候補プールが空です');
