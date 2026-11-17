@@ -2061,6 +2061,107 @@ body {
   margin-top: 8px;
 }
 
+/* セクション折りたたみ (T13) */
+.wb-collapse-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wb-collapse-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 6px 2px;
+  font: inherit;
+  color: var(--color-text-main);
+  cursor: pointer;
+  text-align: left;
+}
+
+.wb-collapse-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.wb-collapse-chevron {
+  flex: none;
+  transition: transform 0.25s ease;
+}
+
+.wb-collapse.is-collapsed .wb-collapse-chevron {
+  transform: rotate(-90deg);
+}
+
+.wb-collapse-body {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.28s ease;
+}
+
+.wb-collapse.is-collapsed .wb-collapse-body {
+  grid-template-rows: 0fr;
+}
+
+.wb-collapse-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ヘルプ画面 (T13) */
+.help-section {
+  margin-bottom: 22px;
+}
+
+.help-title {
+  font-size: 0.98rem;
+  font-weight: 700;
+  margin: 0 0 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.help-text {
+  font-size: 0.85rem;
+  line-height: 1.7;
+  color: var(--color-text-sub);
+  margin: 0 0 8px;
+}
+
+.help-list {
+  margin: 0;
+}
+
+.help-item {
+  display: flex;
+  gap: 10px;
+  padding: 6px 0;
+  font-size: 0.85rem;
+  line-height: 1.65;
+}
+
+.help-item dt {
+  flex: none;
+  width: 7.5em;
+  font-weight: 600;
+  color: var(--color-text-main);
+}
+
+.help-item dd {
+  margin: 0;
+  color: var(--color-text-sub);
+}
+
+.help-item code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.82em;
+  background-color: rgba(255, 255, 255, 0.07);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
 /* 生成画面の使い方と状態表示 (v1.4 逆反映) */
 .gen-howto {
   margin: 10px 0 4px;

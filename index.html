@@ -54,12 +54,23 @@
               aria-controls="screen-manage"
               tabindex="-1"
             >管理</button>
+
+            <button
+              type="button"
+              role="tab"
+              class="tab-btn"
+              id="tab-help"
+              data-screen="screen-help"
+              aria-selected="false"
+              aria-controls="screen-help"
+              tabindex="-1"
+            >ヘルプ</button>
           </div>
         </nav>
       </div>
     </header>
 
-    <!-- メインコンテンツ画面群（3画面切り替え） -->
+    <!-- メインコンテンツ画面群（4画面切り替え） -->
     <main class="app-main" id="mainContent">
       <!-- 2.1 編集画面 -->
       <section
@@ -216,7 +227,7 @@
           </div>
 
           <div class="gen-howto">
-            使い方：① 方式を選ぶ　② 必要なら設定を調整する　③「プロンプト生成」を押すと、下に結果が出ます
+            操作と各項目の詳しい説明は <button type="button" class="btn-text-action" data-goto-help>ヘルプ</button> にまとめました
           </div>
 
           <!-- 生成方式切り替え (セグメントボタン) -->
@@ -252,15 +263,17 @@
 
           <!-- モード1: テンプレート展開パネル -->
           <div class="gen-panel" id="genTemplatePanel" role="tabpanel" aria-labelledby="genModeTemplateBtn">
-            <div class="section-header">
-              <div class="section-title-wrap">
-                <label for="genTemplateInput" class="section-title">テンプレート入力</label>
+            <div class="wb-collapse" data-collapse="template">
+              <div class="wb-collapse-head">
+                <button type="button" class="wb-collapse-toggle" aria-expanded="true">
+                  <svg class="wb-collapse-chevron" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  <span class="wb-collapse-title">テンプレート編集</span>
+                </button>
+                <div class="section-tools">
+                  <button type="button" class="btn-text-action" id="genClearTemplateBtn">クリア</button>
+                </div>
               </div>
-              <div class="section-tools">
-                <button type="button" class="btn-text-action" id="genClearTemplateBtn">クリア</button>
-              </div>
-            </div>
-
+              <div class="wb-collapse-body"><div class="wb-collapse-inner">
             <div class="gen-textarea-wrap">
               <textarea
                 id="genTemplateInput"
@@ -277,17 +290,21 @@
               <button type="button" class="syntax-chip" id="syntaxChipChoice" title="{a|b|c} 選択肢を挿入">{a|b}</button>
               <button type="button" class="syntax-chip syntax-chip-sample" id="syntaxChipSample" title="汎用サンプルテンプレートを挿入">サンプル投入</button>
             </div>
-            <div class="tag-input-hint">
-              <span>💡 {a|b} でいずれかを選択（入れ子可）</span>
+              </div></div>
             </div>
           </div>
 
           <!-- モード2: 辞書ランダムパネル (T7→T8: 全件デフォルト) -->
           <div class="gen-panel" id="genDictPanel" role="tabpanel" aria-labelledby="genModeDictBtn" hidden>
-            <div class="gen-field-group">
-              <div class="section-header">
-                <span class="section-title">フィルター（全件が基本、必要に応じて絞る）</span>
+            <div class="wb-collapse" data-collapse="filter">
+              <div class="wb-collapse-head">
+                <button type="button" class="wb-collapse-toggle" aria-expanded="true">
+                  <svg class="wb-collapse-chevron" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  <span class="wb-collapse-title">フィルター</span>
+                </button>
               </div>
+              <div class="wb-collapse-body"><div class="wb-collapse-inner">
+            <div class="gen-field-group">
               <div class="gen-settings-row">
                 <div class="gen-setting-col">
                   <label for="genDictPercentInput" class="setting-label">上位 (%)</label>
@@ -382,26 +399,27 @@
                   </div>
                 </label>
               </div>
-              <div class="tag-input-hint">
-                <span>💡 初期状態は全カテゴリ・上位100%＝全件が候補です。フィルターで絞って調整できます</span>
-              </div>
+            </div>
+              </div></div>
             </div>
           </div>
 
           <!-- モード3: スロットパネル (T10) -->
           <div class="gen-panel" id="genSlotPanel" role="tabpanel" aria-labelledby="genModeSlotBtn" hidden>
-            <div class="gen-field-group">
-              <div class="section-header">
-                <div class="section-title-wrap">
-                  <span class="section-title">スロット構成</span>
-                  <span class="tag-counter" id="slotActiveCounter">0 枠 有効</span>
-                </div>
+            <div class="gen-field-group wb-collapse" data-collapse="slots">
+              <div class="section-header wb-collapse-head">
+                <button type="button" class="wb-collapse-toggle" aria-expanded="true">
+                  <svg class="wb-collapse-chevron" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  <span class="wb-collapse-title">スロット構成</span>
+                </button>
+                <span class="tag-counter" id="slotActiveCounter">0 枠 有効</span>
                 <div class="section-tools">
                   <button type="button" class="btn-text-action" id="slotCollapseAllBtn">すべて閉じる</button>
                   <button type="button" class="btn-text-action" id="slotExpandAllBtn">すべて開く</button>
                   <button type="button" class="btn-text-action" id="slotResetBtn">プリセットに戻す</button>
                 </div>
               </div>
+              <div class="wb-collapse-body"><div class="wb-collapse-inner">
               <div class="slot-list" id="slotList" role="list" aria-label="スロット一覧"></div>
               <div class="manage-actions">
                 <button type="button" class="btn-manage-sub" id="slotAddBtn">＋ スロット追加</button>
@@ -409,9 +427,7 @@
               <div class="tag-input-hint">
                 <span id="slotInfo">グループ分類を読み込み中です…</span>
               </div>
-              <div class="tag-input-hint">
-                <span>💡 有効な各枠から、グループ内の上位%プールから指定個数を引いて合成します（枠をまたいだ重複は除きます）</span>
-              </div>
+              </div></div>
             </div>
           </div>
 
@@ -563,6 +579,99 @@
             <!-- 2.3 データ入出力 (T6 実装, manage.js が描画) -->
             <div id="dataIoRoot"></div>
           </div>
+        </div>
+      </section>
+      <!-- 2.4 ヘルプ画面 (T13) -->
+      <section
+        id="screen-help"
+        class="screen"
+        role="tabpanel"
+        aria-labelledby="tab-help"
+        tabindex="0"
+        hidden
+      >
+        <div class="screen-content">
+          <div class="screen-heading">
+            <h2 class="screen-title">ヘルプ</h2>
+            <p class="screen-description">操作説明と各項目の詳細をまとめています。</p>
+          </div>
+
+          <div class="help-section">
+            <h3 class="help-title">このツールについて</h3>
+            <p class="help-text">Danbooru辞書（全140,782件）を使った、画像生成向けプロンプトの作成補助ツールです。編集画面でタグを組み立て、生成画面でテンプレート／ランダム生成ができます。データは端末のブラウザ内にのみ保存され、外部へ送信されることはありません。</p>
+            <dl class="help-list">
+              <div class="help-item"><dt>編集</dt><dd>タグを1つずつ選んでプロンプトを組み立てる画面です。</dd></div>
+              <div class="help-item"><dt>生成</dt><dd>3つの方式でプロンプトを一括生成する画面です。</dd></div>
+              <div class="help-item"><dt>管理</dt><dd>スニペット、辞書の状態、データ入出力を扱う画面です。</dd></div>
+            </dl>
+          </div>
+
+          <div class="help-section">
+            <h3 class="help-title">編集画面</h3>
+            <dl class="help-list">
+              <div class="help-item"><dt>タグ入力</dt><dd>文字を打つと辞書から補完候補が出ます（投稿数の多い順）。Enter またはカンマでタグを確定し、入力欄が空のとき Backspace で末尾のタグを消します。候補の色ドットは Danbooru カテゴリ（一般／キャラクター／著作権／アーティスト／メタ）を表します。</dd></div>
+              <div class="help-item"><dt>和訳表示</dt><dd>和訳データ（50,885件）にあるタグは、候補・チップ・生成結果に日本語訳が併記されます。自動翻訳由来のため、訳は目安として扱ってください。訳のないタグは英語のまま表示されます。</dd></div>
+              <div class="help-item"><dt>チップ</dt><dd>確定したタグです。×で削除できます。色付きのチップはスニペットから挿入されたものです。</dd></div>
+              <div class="help-item"><dt>プレビュー＆コピー</dt><dd>チップ列をカンマ区切りテキストで表示し、そのままコピーできます。</dd></div>
+              <div class="help-item"><dt>スニペット</dt><dd>よく使う固定フレーズです。タップするとチップとして挿入されます。内容の追加・編集は管理画面で行います。</dd></div>
+            </dl>
+          </div>
+
+          <div class="help-section">
+            <h3 class="help-title">生成画面（共通）</h3>
+            <dl class="help-list">
+              <div class="help-item"><dt>生成個数</dt><dd>一度に生成するプロンプトの数です（1〜100）。</dd></div>
+              <div class="help-item"><dt>シード</dt><dd>空欄なら毎回ランダムです。数値を入れると、同じ設定で同じ結果を再現できます（結果ごとに「シード＋連番」で抽選します）。</dd></div>
+              <div class="help-item"><dt>生成結果</dt><dd>カードの見出しタップで全文が開きます。各カードにコピーと「編集へ送る」（編集画面へタグとして読み込む）があり、一覧の「全件コピー」も使えます。訳のあるタグは和訳行も表示されます。</dd></div>
+              <div class="help-item"><dt>読み込み中</dt><dd>辞書やグループ分類の読み込みが終わるまでは、生成ボタンは押せません。ボタン直下の表示が目安です。</dd></div>
+              <div class="help-item"><dt>折りたたみ</dt><dd>テンプレート編集・フィルター・スロット構成は、見出しタップで畳めます。開閉の状態は保存されます。</dd></div>
+            </dl>
+          </div>
+
+          <div class="help-section">
+            <h3 class="help-title">テンプレート展開</h3>
+            <dl class="help-list">
+              <div class="help-item"><dt>記法</dt><dd><code>{a|b|c}</code> と書くと、生成のたびに候補から1つがランダムに選ばれます。入れ子（<code>{ }</code> の中に <code>{ }</code>）も使えます。波かっこの外の文字はそのまま出力されます。</dd></div>
+              <div class="help-item"><dt>挿入ボタン</dt><dd><code>{a|b}</code> の雛形をカーソル位置に入れます。「サンプル投入」は汎用サンプルのテンプレートに置き換えます。</dd></div>
+            </dl>
+          </div>
+
+          <div class="help-section">
+            <h3 class="help-title">辞書ランダム（フィルター）</h3>
+            <p class="help-text">基本は辞書全件（140,782件）が候補です。フィルターは「全件から絞る」ために使います。</p>
+            <dl class="help-list">
+              <div class="help-item"><dt>上位%</dt><dd>投稿数の多い順に並べたときの上位X%だけを候補にします。100%は全件です。小さくするほど有名なタグに寄ります。</dd></div>
+              <div class="help-item"><dt>1件あたりのタグ数</dt><dd>1つのプロンプトに引くタグの数です（1〜30、重複なし）。</dd></div>
+              <div class="help-item"><dt>タググループ</dt><dd>Danbooru Wiki の分類（294グループ）から1つ選ぶと、そのグループのタグだけに絞ります。カテゴリ・上位%と併用できます。</dd></div>
+              <div class="help-item"><dt>対象カテゴリ</dt><dd>一般（外見・衣装・ポーズ等）／キャラクター／著作権（作品）／アーティスト／メタの5区分です。初期状態は全てONです。</dd></div>
+              <div class="help-item"><dt>候補プール</dt><dd>現在のフィルターで何件が候補になっているかを、フィルターの下に表示します。</dd></div>
+            </dl>
+          </div>
+
+          <div class="help-section">
+            <h3 class="help-title">スロット</h3>
+            <p class="help-text">枠ごとに決めたグループからタグを引いて、1つのプロンプトに合成する方式です。髪・目・服・背景のように役割を分担させられます。</p>
+            <dl class="help-list">
+              <div class="help-item"><dt>グループ</dt><dd>その枠が引く対象の分類です。</dd></div>
+              <div class="help-item"><dt>個数</dt><dd>その枠から引くタグの数です（1〜3）。</dd></div>
+              <div class="help-item"><dt>上位%</dt><dd>枠ごとに設定します。グループ内を投稿数の多い順に並べた上位X%から引きます。</dd></div>
+              <div class="help-item"><dt>ON／OFF</dt><dd>チェックを外した枠は引きません。全枠OFFでは生成できません。</dd></div>
+              <div class="help-item"><dt>枠の折りたたみ</dt><dd>枠の見出しタップで詳細を畳めます。畳んでもグループ名・個数・上位%とOFF表示が残り、ON／OFFと削除は操作できます。「すべて閉じる／すべて開く」もあります。</dd></div>
+              <div class="help-item"><dt>プリセットに戻す</dt><dd>初期の6枠（hair styles／eyes tags／face tags／attire／backgrounds／poses）に戻します。</dd></div>
+              <div class="help-item"><dt>重複の扱い</dt><dd>同じタグが複数の枠で引かれた場合は、1つにまとめられます。</dd></div>
+            </dl>
+          </div>
+
+          <div class="help-section">
+            <h3 class="help-title">管理画面</h3>
+            <dl class="help-list">
+              <div class="help-item"><dt>スニペット管理</dt><dd>固定フレーズの追加・編集・削除を行います。編集画面の一覧に反映されます。</dd></div>
+              <div class="help-item"><dt>辞書情報</dt><dd>辞書・タググループ分類・和訳データの件数と読み込み状態を表示します。読み込みに失敗したときは再読み込みボタンを使ってください。</dd></div>
+              <div class="help-item"><dt>データ入出力</dt><dd>スニペットを JSON で書き出し／取り込みします。取り込みはファイルの複数選択（追加式）と貼り付けに対応します。旧形式のデータに含まれるワイルドカード部分は無視されます。</dd></div>
+              <div class="help-item"><dt>保存先</dt><dd>スニペットとスロット構成は端末のブラウザ内（localStorage）にのみ保存されます。ブラウザのデータを消すと一緒に消えるため、大事なスニペットは書き出して保管してください。</dd></div>
+            </dl>
+          </div>
+
         </div>
       </section>
     </main>

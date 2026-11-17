@@ -864,11 +864,56 @@
   });
 
   /* ==========================================================================
+     セクション折りたたみ (T13)
+     - .wb-collapse 配下の .wb-collapse-toggle で開閉する
+     - 開閉状態は localStorage (prompt_workbench_collapse) に保存する
+     ========================================================================== */
+  const COLLAPSE_STORAGE_KEY = 'prompt_workbench_collapse';
+
+  function initCollapses() {
+    let state = {};
+    try {
+      state = JSON.parse(localStorage.getItem(COLLAPSE_STORAGE_KEY) || '{}') || {};
+    } catch (e) {
+      state = {};
+    }
+    document.querySelectorAll('.wb-collapse').forEach(sec => {
+      const id = sec.getAttribute('data-collapse');
+      const toggle = sec.querySelector('.wb-collapse-toggle');
+      if (!id || !toggle) return;
+      const apply = (collapsed) => {
+        sec.classList.toggle('is-collapsed', collapsed);
+        toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+      };
+      apply(state[id] === true);
+      toggle.addEventListener('click', () => {
+        const now = !sec.classList.contains('is-collapsed');
+        apply(now);
+        state[id] = now;
+        try {
+          localStorage.setItem(COLLAPSE_STORAGE_KEY, JSON.stringify(state));
+        } catch (e) { /* 保存できなくても開閉は動作する */ }
+      });
+    });
+  }
+
+  function initHelpLinks() {
+    document.querySelectorAll('[data-goto-help]').forEach(el => {
+      el.addEventListener('click', () => {
+        const helpTab = document.getElementById('tab-help');
+        if (helpTab) helpTab.click();
+      });
+    });
+  }
+
+  /* ==========================================================================
      初期化実行
      ========================================================================== */
   function initApp() {
     applyInitialTab();
     updatePreview();
+    initCollapses();
+    initHelpLinks();
   }
 
   if (document.readyState === 'loading') {
