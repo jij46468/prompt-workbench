@@ -1999,6 +1999,93 @@ body {
   margin-top: 8px;
 }
 
+/* スロット折りたたみ (v1.5 逆反映) */
+.slot-toggle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 6px 2px;
+  font: inherit;
+  color: var(--color-text-main);
+  cursor: pointer;
+  text-align: left;
+}
+
+.slot-toggle-chevron {
+  flex: none;
+  transition: transform 0.25s ease;
+}
+
+.slot-row.is-collapsed .slot-toggle-chevron {
+  transform: rotate(-90deg);
+}
+
+.slot-summary {
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.slot-off-badge {
+  flex: none;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-text-muted);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+.slot-row-body {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.28s ease;
+}
+
+.slot-row.is-collapsed .slot-row-body {
+  grid-template-rows: 0fr;
+}
+
+.slot-row-body-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.slot-row-body .slot-select {
+  width: 100%;
+  margin-top: 8px;
+}
+
+/* 生成画面の使い方と状態表示 (v1.4 逆反映) */
+.gen-howto {
+  margin: 10px 0 4px;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--color-text-sub);
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+}
+
+.gen-status {
+  margin-top: 8px;
+  min-height: 1.2em;
+  font-size: 0.82rem;
+  color: var(--color-text-sub);
+  text-align: center;
+}
+
+.btn-primary-generate:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .slot-setting {
   display: flex;
   align-items: center;

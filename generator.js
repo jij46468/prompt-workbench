@@ -336,6 +336,8 @@
     const slotList = document.getElementById('slotList');
     const slotAddBtn = document.getElementById('slotAddBtn');
     const slotResetBtn = document.getElementById('slotResetBtn');
+    const slotCollapseAllBtn = document.getElementById('slotCollapseAllBtn');
+    const slotExpandAllBtn = document.getElementById('slotExpandAllBtn');
     const slotActiveCounter = document.getElementById('slotActiveCounter');
     const slotInfo = document.getElementById('slotInfo');
     const genTemplatePanel = document.getElementById('genTemplatePanel');
@@ -361,6 +363,7 @@
     const genSeedDiceBtn = document.getElementById('genSeedDiceBtn');
     const runGenerateBtn = document.getElementById('runGenerateBtn');
     const runGenerateBtnText = document.getElementById('runGenerateBtnText');
+    const genStatus = document.getElementById('genStatus');
 
     // 生成結果エリア要素
     const genResultsBadge = document.getElementById('genResultsBadge');
@@ -645,59 +648,104 @@
       slotActiveCounter.textContent = `${active} / ${list.length} 枠 有効`;
     }
 
+    function slotGroupName(groupId) {
+      const api = window.PromptWorkbenchGroups;
+      if (api && typeof api.getGroups === 'function') {
+        const g = api.getGroups().find(g => g.id === groupId);
+        if (g) return g.name;
+      }
+      return groupId || '未選択';
+    }
+
     function renderSlotList() {
       if (!slotList) return;
       const slots = getSlotsFromStore();
       slotList.innerHTML = '';
 
       slots.forEach((slot, idx) => {
+        const collapsed = slot.collapsed === true;
         const row = document.createElement('div');
-        row.className = `slot-row${slot.enabled ? '' : ' is-disabled'}`;
+        row.className = `slot-row${slot.enabled ? '' : ' is-disabled'}${collapsed ? ' is-collapsed' : ''}`;
         row.setAttribute('role', 'listitem');
         row.innerHTML = `
           <div class="slot-row-head">
             <input type="checkbox" class="slot-enabled" ${slot.enabled ? 'checked' : ''} aria-label="スロット ${idx + 1} の有効/無効">
-            <select class="slot-select gen-input-text" aria-label="スロット ${idx + 1} のグループ"></select>
+            <button type="button" class="slot-toggle" aria-expanded="${collapsed ? 'false' : 'true'}" aria-label="スロット ${idx + 1} の詳細を開閉">
+              <svg class="slot-toggle-chevron" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              <span class="slot-summary"></span>
+              ${slot.enabled ? '' : '<span class="slot-off-badge">OFF</span>'}
+            </button>
             <button type="button" class="btn-text-action slot-del-btn">削除</button>
           </div>
-          <div class="slot-row-settings">
-            <label class="slot-setting">個数
-              <input type="number" class="gen-input-number slot-count" min="1" max="3" value="${slot.count}" aria-label="抽選個数 (1〜3)">
-            </label>
-            <label class="slot-setting">上位%
-              <input type="number" class="gen-input-number slot-percent" min="1" max="100" value="${slot.percent}" aria-label="人気フィルター上位パーセント (1〜100)">
-            </label>
+          <div class="slot-row-body">
+            <div class="slot-row-body-inner">
+              <select class="slot-select gen-input-text" aria-label="スロット ${idx + 1} のグループ"></select>
+              <div class="slot-row-settings">
+                <label class="slot-setting">個数
+                  <input type="number" class="gen-input-number slot-count" min="1" max="3" value="${slot.count}" aria-label="抽選個数 (1〜3)">
+                </label>
+                <label class="slot-setting">上位%
+                  <input type="number" class="gen-input-number slot-percent" min="1" max="100" value="${slot.percent}" aria-label="人気フィルター上位パーセント (1〜100)">
+                </label>
+              </div>
+            </div>
           </div>
         `;
 
         const enabledCb = row.querySelector('.slot-enabled');
+        const toggleBtn = row.querySelector('.slot-toggle');
+        const summaryEl = row.querySelector('.slot-summary');
         const select = row.querySelector('.slot-select');
         const countInput = row.querySelector('.slot-count');
         const percentInput = row.querySelector('.slot-percent');
         const delBtn = row.querySelector('.slot-del-btn');
 
-        fillSlotGroupOptions(select, slot.groupId);
+        const updateSummary = () => {
+          summaryEl.textContent = `枠${idx + 1}：${slotGroupName(select.value)} ・ ${countInput.value}個 ・ 上位${percentInput.value}%`;
+        };
 
+        fillSlotGroupOptions(select, slot.groupId);
+        updateSummary();
+
+        toggleBtn.addEventListener('click', () => {
+          const list = getSlotsFromStore();
+          const now = !(list[idx] && list[idx].collapsed === true);
+          if (list[idx]) { list[idx].collapsed = now; saveSlotsToStore(list); }
+          row.classList.toggle('is-collapsed', now);
+          toggleBtn.setAttribute('aria-expanded', now ? 'false' : 'true');
+        });
         enabledCb.addEventListener('change', () => {
           const list = getSlotsFromStore();
           if (list[idx]) { list[idx].enabled = enabledCb.checked; saveSlotsToStore(list); }
           row.classList.toggle('is-disabled', !enabledCb.checked);
+          const badge = toggleBtn.querySelector('.slot-off-badge');
+          if (!enabledCb.checked && !badge) {
+            const b = document.createElement('span');
+            b.className = 'slot-off-badge';
+            b.textContent = 'OFF';
+            toggleBtn.appendChild(b);
+          } else if (enabledCb.checked && badge) {
+            badge.remove();
+          }
         });
         select.addEventListener('change', () => {
           const list = getSlotsFromStore();
           if (list[idx]) { list[idx].groupId = select.value; saveSlotsToStore(list); }
+          updateSummary();
         });
         countInput.addEventListener('change', () => {
           const v = Math.min(3, Math.max(1, Math.round(Number(countInput.value) || 1)));
           countInput.value = String(v);
           const list = getSlotsFromStore();
           if (list[idx]) { list[idx].count = v; saveSlotsToStore(list); }
+          updateSummary();
         });
         percentInput.addEventListener('change', () => {
           const v = Math.min(100, Math.max(1, Math.round(Number(percentInput.value) || 100)));
           percentInput.value = String(v);
           const list = getSlotsFromStore();
           if (list[idx]) { list[idx].percent = v; saveSlotsToStore(list); }
+          updateSummary();
         });
         delBtn.addEventListener('click', () => {
           const list = getSlotsFromStore();
@@ -722,8 +770,27 @@
           groupId: groups.length > 0 ? groups[0].id : '',
           count: 1,
           percent: 100,
-          enabled: true
+          enabled: true,
+          collapsed: false
         });
+        saveSlotsToStore(list);
+        renderSlotList();
+      });
+    }
+
+    if (slotCollapseAllBtn) {
+      slotCollapseAllBtn.addEventListener('click', () => {
+        const list = getSlotsFromStore();
+        list.forEach(s => { s.collapsed = true; });
+        saveSlotsToStore(list);
+        renderSlotList();
+      });
+    }
+
+    if (slotExpandAllBtn) {
+      slotExpandAllBtn.addEventListener('click', () => {
+        const list = getSlotsFromStore();
+        list.forEach(s => { s.collapsed = false; });
         saveSlotsToStore(list);
         renderSlotList();
       });
@@ -829,6 +896,40 @@
     /* ------------------------------------------------------------------------
        5. 生成実行ロジック
        ------------------------------------------------------------------------ */
+    function setGenStatus(msg) {
+      if (genStatus) genStatus.textContent = msg || '';
+    }
+
+    function computeGenerateBlockReason() {
+      if (currentMode === 'template') return '';
+      const dict = window.PromptWorkbenchDictionary;
+      const ds = dict && typeof dict.getStatus === 'function' ? dict.getStatus() : null;
+      if (!ds || ds.status !== 'ready') {
+        if (ds && ds.status === 'error') return '辞書の読み込みに失敗しました（管理画面から再読み込みできます）';
+        return '辞書を読み込み中です…';
+      }
+      if (currentMode === 'slot') {
+        const g = window.PromptWorkbenchGroups;
+        const gs = g && typeof g.getStatus === 'function' ? g.getStatus() : null;
+        if (!gs || gs.status !== 'ready') return 'グループ分類を読み込み中です…';
+      }
+      return '';
+    }
+
+    function refreshGenerateAvailability() {
+      if (!runGenerateBtn) return;
+      const reason = computeGenerateBlockReason();
+      if (reason) {
+        runGenerateBtn.disabled = true;
+        if (runGenerateBtnText) runGenerateBtnText.textContent = '読み込み中…';
+        if (genStatus && genStatus.textContent !== reason) genStatus.textContent = reason;
+      } else if (runGenerateBtn.disabled) {
+        runGenerateBtn.disabled = false;
+        updateGenerateButtonText();
+        if (genStatus && genStatus.textContent.includes('読み込み中')) genStatus.textContent = '';
+      }
+    }
+
     function runGeneration() {
       const count = getCountValue();
       const rawSeedInput = genSeedInput ? genSeedInput.value.trim() : '';
@@ -839,6 +940,7 @@
       if (currentMode === 'template') {
         const template = (genTemplateInput ? genTemplateInput.value : '').trim();
         if (!template) {
+          setGenStatus('テンプレートを入力してください');
           if (window.PromptWorkbench?.showToast) {
             window.PromptWorkbench.showToast('テンプレートを入力してください');
           }
@@ -866,6 +968,7 @@
         const dict = window.PromptWorkbenchDictionary;
         const dStatus = dict && typeof dict.getStatus === 'function' ? dict.getStatus() : null;
         if (!dict || !dStatus || dStatus.status !== 'ready') {
+          setGenStatus('辞書の読み込みが完了していません');
           if (window.PromptWorkbench?.showToast) {
             window.PromptWorkbench.showToast('辞書の読み込みが完了していません');
           }
@@ -874,6 +977,7 @@
         const gApi = window.PromptWorkbenchGroups;
         const gStatus = gApi && typeof gApi.getStatus === 'function' ? gApi.getStatus() : null;
         if (!gApi || !gStatus || gStatus.status !== 'ready') {
+          setGenStatus('グループ分類の読み込みが完了していません');
           if (window.PromptWorkbench?.showToast) {
             window.PromptWorkbench.showToast('グループ分類の読み込みが完了していません');
           }
@@ -881,6 +985,7 @@
         }
         const slots = getSlotsFromStore().filter(s => s.enabled);
         if (slots.length === 0) {
+          setGenStatus('有効なスロットがありません');
           if (window.PromptWorkbench?.showToast) {
             window.PromptWorkbench.showToast('有効なスロットがありません');
           }
@@ -906,6 +1011,7 @@
         const dict = window.PromptWorkbenchDictionary;
         const status = dict && typeof dict.getStatus === 'function' ? dict.getStatus() : null;
         if (!dict || !status || status.status !== 'ready' || typeof dict.getAllTags !== 'function') {
+          setGenStatus('辞書の読み込みが完了していません');
           if (window.PromptWorkbench?.showToast) {
             window.PromptWorkbench.showToast('辞書の読み込みが完了していません');
           }
@@ -914,6 +1020,7 @@
 
         const categories = getDictSelectedCategories();
         if (categories.size === 0) {
+          setGenStatus('対象カテゴリを1つ以上選択してください');
           if (window.PromptWorkbench?.showToast) {
             window.PromptWorkbench.showToast('対象カテゴリを1つ以上選択してください');
           }
@@ -924,14 +1031,16 @@
           const gApi = window.PromptWorkbenchGroups;
           const gStatus = gApi && typeof gApi.getStatus === 'function' ? gApi.getStatus() : null;
           if (!gStatus || gStatus.status !== 'ready') {
+            setGenStatus('グループ分類の読み込みが完了していません');
             if (window.PromptWorkbench?.showToast) {
-              window.PromptWorkbench.showToast('グループ分類の読み込みが完了していません');
+            window.PromptWorkbench.showToast('グループ分類の読み込みが完了していません');
             }
             return;
           }
         }
         const pool = buildPopularityPool(dict.getAllTags(), getDictPercent(), categories, getDictGroupSet());
         if (pool.length === 0) {
+          setGenStatus('候補プールが空です');
           if (window.PromptWorkbench?.showToast) {
             window.PromptWorkbench.showToast('候補プールが空です');
           }
@@ -964,6 +1073,13 @@
       currentResults = newResults;
       renderResultsList();
 
+      setGenStatus(`${count} 件のプロンプトを生成しました (Seed: ${baseSeed})`);
+      const resultsSection = document.getElementById('genResultsSection');
+      if (resultsSection && typeof resultsSection.scrollIntoView === 'function') {
+        const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        resultsSection.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+      }
+
       if (window.PromptWorkbench?.showToast) {
         window.PromptWorkbench.showToast(`${count} 件のプロンプトを生成しました (Seed: ${baseSeed})`);
       }
@@ -972,6 +1088,9 @@
     if (runGenerateBtn) {
       runGenerateBtn.addEventListener('click', runGeneration);
     }
+
+    refreshGenerateAvailability();
+    setInterval(refreshGenerateAvailability, 800);
 
     /* ------------------------------------------------------------------------
        6. 生成結果リスト描画 (T5 Expand card, SPEC §3.3)

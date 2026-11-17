@@ -181,7 +181,6 @@
                 aria-live="polite"
               ><span class="preview-empty-placeholder">タグを追加すると、ここにカンマ区切りのプロンプトが表示されます。</span></div>
             </div>
-            <div class="copy-toast" id="copyToast" role="status" aria-live="polite" hidden></div>
           </div>
 
           <!-- 2.1 スニペット一覧 (T6 実装) -->
@@ -214,6 +213,10 @@
           <div class="screen-heading">
             <h2 class="screen-title">生成</h2>
             <p class="screen-description">テンプレート展開、辞書全件を基本にフィルターで絞るランダム、グループ別スロット合成でプロンプトを一括生成します。</p>
+          </div>
+
+          <div class="gen-howto">
+            使い方：① 方式を選ぶ　② 必要なら設定を調整する　③「プロンプト生成」を押すと、下に結果が出ます
           </div>
 
           <!-- 生成方式切り替え (セグメントボタン) -->
@@ -394,6 +397,8 @@
                   <span class="tag-counter" id="slotActiveCounter">0 枠 有効</span>
                 </div>
                 <div class="section-tools">
+                  <button type="button" class="btn-text-action" id="slotCollapseAllBtn">すべて閉じる</button>
+                  <button type="button" class="btn-text-action" id="slotExpandAllBtn">すべて開く</button>
                   <button type="button" class="btn-text-action" id="slotResetBtn">プリセットに戻す</button>
                 </div>
               </div>
@@ -457,6 +462,7 @@
               </svg>
               <span id="runGenerateBtnText">プロンプト生成 (5件)</span>
             </button>
+            <div class="gen-status" id="genStatus" role="status" aria-live="polite"></div>
           </div>
 
           <!-- 生成結果エリア (T4 簡易一覧 / T5 Expand card で拡張予定) -->
@@ -561,6 +567,9 @@
       </section>
     </main>
   </div>
+
+  <!-- 通知トーストは全画面共通（画面セクションの外に置き、非表示画面でも出るようにする） -->
+  <div class="copy-toast" id="copyToast" role="status" aria-live="polite" hidden></div>
 
   <script src="app.js"></script>
   <script src="dictionary.js"></script>

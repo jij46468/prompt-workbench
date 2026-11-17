@@ -21,12 +21,12 @@
    * グループIDは data/tag-groups.json の id を指す（実在確認済み）。
    */
   const DEFAULT_SLOTS = [
-    { id: 'slot_1', groupId: 'tag_group:hair_styles', count: 1, percent: 100, enabled: true },
-    { id: 'slot_2', groupId: 'tag_group:eyes_tags', count: 1, percent: 100, enabled: true },
-    { id: 'slot_3', groupId: 'tag_group:face_tags', count: 1, percent: 100, enabled: true },
-    { id: 'slot_4', groupId: 'tag_group:attire', count: 1, percent: 100, enabled: true },
-    { id: 'slot_5', groupId: 'tag_group:backgrounds', count: 1, percent: 100, enabled: true },
-    { id: 'slot_6', groupId: 'list_of_poses', count: 1, percent: 100, enabled: true }
+    { id: 'slot_1', groupId: 'tag_group:hair_styles', count: 1, percent: 100, enabled: true, collapsed: false },
+    { id: 'slot_2', groupId: 'tag_group:eyes_tags', count: 1, percent: 100, enabled: true, collapsed: false },
+    { id: 'slot_3', groupId: 'tag_group:face_tags', count: 1, percent: 100, enabled: true, collapsed: false },
+    { id: 'slot_4', groupId: 'tag_group:attire', count: 1, percent: 100, enabled: true, collapsed: false },
+    { id: 'slot_5', groupId: 'tag_group:backgrounds', count: 1, percent: 100, enabled: true, collapsed: false },
+    { id: 'slot_6', groupId: 'list_of_poses', count: 1, percent: 100, enabled: true, collapsed: false }
   ];
 
   /**
