@@ -389,7 +389,7 @@
       `;
 
       chip.appendChild(textSpan);
-      const jp = !tag.isSnippet && window.WBTranslations ? window.WBTranslations.get(tag.text) : null;
+      const jp = window.WBTranslations ? window.WBTranslations.get(tag.text) : null;
       if (jp) {
         const jpSpan = document.createElement('span');
         jpSpan.className = 'tag-chip-jp';
