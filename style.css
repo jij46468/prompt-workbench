@@ -2041,14 +2041,15 @@ body {
   padding: 1px 5px;
 }
 
+/* T18: 折りたたみはアニメーションでなく display:none で確実に隠す
+   （スペース版 v1.9 と同じ方式。grid-template-rows 方式は実機で
+   畳めないことがあったため） */
 .slot-row-body {
-  display: grid;
-  grid-template-rows: 1fr;
-  transition: grid-template-rows 0.28s ease;
+  display: block;
 }
 
 .slot-row.is-collapsed .slot-row-body {
-  grid-template-rows: 0fr;
+  display: none;
 }
 
 .slot-row-body-inner {
@@ -2116,13 +2117,11 @@ body {
 }
 
 .wb-collapse-body {
-  display: grid;
-  grid-template-rows: 1fr;
-  transition: grid-template-rows 0.28s ease;
+  display: block;
 }
 
 .wb-collapse.is-collapsed .wb-collapse-body {
-  grid-template-rows: 0fr;
+  display: none;
 }
 
 .wb-collapse-inner {

@@ -877,24 +877,31 @@
     } catch (e) {
       state = {};
     }
+    const apply = (sec, collapsed) => {
+      sec.classList.toggle('is-collapsed', collapsed);
+      const toggle = sec.querySelector('.wb-collapse-toggle');
+      if (toggle) toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    };
+    // 初期状態は折りたたみ。明示的に開いた場合（false 保存時）のみ展開で復元する
     document.querySelectorAll('.wb-collapse').forEach(sec => {
       const id = sec.getAttribute('data-collapse');
-      const toggle = sec.querySelector('.wb-collapse-toggle');
-      if (!id || !toggle) return;
-      const apply = (collapsed) => {
-        sec.classList.toggle('is-collapsed', collapsed);
-        toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
-      };
-      // 初期状態は折りたたみ。明示的に開いた場合（false 保存時）のみ展開で復元する
-      apply(state[id] !== false);
-      toggle.addEventListener('click', () => {
-        const now = !sec.classList.contains('is-collapsed');
-        apply(now);
-        state[id] = now;
-        try {
-          localStorage.setItem(COLLAPSE_STORAGE_KEY, JSON.stringify(state));
-        } catch (e) { /* 保存できなくても開閉は動作する */ }
-      });
+      if (id) apply(sec, state[id] !== false);
+    });
+    // T18: 見出しのタップは document へのイベント委譲で受ける
+    // （スペース版 v1.9 と同じ方式。後から描画された見出しでも効く）
+    document.addEventListener('click', (ev) => {
+      const toggle = ev.target && ev.target.closest
+        ? ev.target.closest('.wb-collapse-toggle') : null;
+      if (!toggle) return;
+      const sec = toggle.closest('.wb-collapse');
+      const id = sec && sec.getAttribute('data-collapse');
+      if (!sec || !id) return;
+      const now = !sec.classList.contains('is-collapsed');
+      apply(sec, now);
+      state[id] = now;
+      try {
+        localStorage.setItem(COLLAPSE_STORAGE_KEY, JSON.stringify(state));
+      } catch (e) { /* 保存できなくても開閉は動作する */ }
     });
   }
 
