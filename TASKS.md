@@ -71,12 +71,20 @@
 
 - T16 大分類「作品名」の新設（収録時の既定分類）：data/taxonomy-default.json
   を土台として読み、端末内の taxonomy はその上にマージする。作品別
-  グループ 142 件（Characters／Character lists by work／meta-wikis 等に
-  散らばっていたキャラ一覧＋作品タグ一覧）をタイトル別フォルダ 131 件へ、
-  ジャンル別タイトル集 6 件（格闘／RPG／ビジュアルノベル／シューター／
-  プラットフォーム／ガチャ）をジャンル別フォルダへ集め、フォルダは
-  収録タグ数の多い順（ジャンル別は末尾）。割当表の生成は
-  tools/taxonomy/generate_default.py（規則＋除外リストで再生成可能）。
-  テーマ系（性転換・マスコット・実在競走馬・Minecraft配信者）と会社
-  共有系（Cygames／miHoYo共有）は元の分類に残す。移動で空になった
-  大分類はツリーに出さない。大分類の並びは移動後の総グループ数順。
+  グループをタイトル別フォルダへ、ジャンル別タイトル集 6 件（格闘／
+  RPG／ビジュアルノベル／シューター／プラットフォーム／ガチャ）を
+  ジャンル別フォルダへ集め、フォルダは収録タグ数の多い順（ジャンル別
+  は末尾）。割当表の生成は tools/taxonomy/generate_default.py（規則＋
+  除外リストで再生成可能）。テーマ系（性転換・マスコット・実在競走馬・
+  Minecraft配信者）と会社共有系（Cygames／miHoYo共有）は元の分類に
+  残す。移動で空になった大分類はツリーに出さない。大分類の並びは
+  移動後の総グループ数順。
+
+- T17 中分類フォルダの拡充（ユーザーが提案を採用）：ポケモン関係 6 件
+  （objects／media／places／moves／abilities／anime characters）を
+  作品名の pokemon フォルダへ合流（計 8 件、pokemon anime フォルダは
+  統合して消滅）、warframes を warframe フォルダへ合流（計 2 件）。
+  作品名は 148 件／タイトル別フォルダ 130 件になる。あわせて他の
+  大分類 7 件にテーマ別フォルダ 31 件を既定で付ける（Body 5／
+  Attire 3／Image composition and style 4／Objects 5／More 7／
+  meta-wikis 4／Real world 3）。フォルダ名は日本語のテーマ名。
