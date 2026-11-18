@@ -11,6 +11,7 @@
   'use strict';
 
   const JSON_PATH = 'data/tag-groups.json';
+  const TAXONOMY_DEFAULT_PATH = 'data/taxonomy-default.json';
 
   const state = {
     status: 'idle', // 'idle' | 'loading' | 'ready' | 'error'
@@ -18,13 +19,19 @@
     groupTagSets: new Map(), // id -> Set<tagName>
     tagGroups: new Map(),    // tagName -> [groupId]
     classifiedTags: 0,
-    error: null
+    error: null,
+    defaultTaxonomy: null  // T16: 収録時の分類上書き（作品名など）
   };
 
   async function loadGroups() {
     if (state.status === 'loading' || state.status === 'ready') return;
     state.status = 'loading';
     try {
+      // 既定 taxonomy は失敗しても致命傷にしない（既定分類で動作継続）
+      const taxPromise = fetch(TAXONOMY_DEFAULT_PATH)
+        .then(r => (r.ok ? r.json() : null))
+        .then(t => (t && typeof t === 'object' ? t : null))
+        .catch(() => null);
       const response = await fetch(JSON_PATH);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
@@ -43,6 +50,8 @@
           arr.push(g.id);
         }
       }
+      // ready になる前に既定 taxonomy の到着を待つ（ツリーの初回描画を揃える）
+      state.defaultTaxonomy = await taxPromise;
       state.status = 'ready';
       updateManageStat();
     } catch (err) {
@@ -163,13 +172,40 @@
       c.folders = applyOrder(c.folders, folderOrder[c.name], f => f.id);
     }
     let cats = [...catMap.values()];
+    // 既定の並びは、移動後の総グループ数（フォルダ内を含む）の降順
+    const totalOf = c => c.direct.length + c.folders.reduce((s, f) => s + f.groups.length, 0);
+    cats.sort((a, b) => totalOf(b) - totalOf(a) || a.name.localeCompare(b.name));
     cats = applyOrder(cats, t.catOrder, c => c.name);
+    // グループもフォルダも無い大分類は落とす（移動で空になった分類の掃除）
+    cats = cats.filter(c =>
+      c.direct.length > 0 || c.folders.length > 0);
     return cats;
   }
 
   function currentTaxonomy() {
     const store = window.PromptWorkbench && window.PromptWorkbench.store;
     return store && typeof store.getTaxonomy === 'function' ? store.getTaxonomy() : null;
+  }
+
+  // T16: 収録時の既定 taxonomy の上に、端末内の上書きを重ねる
+  function mergeTaxonomies(base, over) {
+    if (!base) return over || null;
+    if (!over) return base;
+    const folders = new Map();
+    for (const f of base.folders || []) folders.set(f.id, f);
+    for (const f of over.folders || []) folders.set(f.id, f);
+    return {
+      catOrder: over.catOrder && over.catOrder.length ? over.catOrder : base.catOrder,
+      groupCat: { ...(base.groupCat || {}), ...(over.groupCat || {}) },
+      folders: [...folders.values()],
+      folderOrder: { ...(base.folderOrder || {}), ...(over.folderOrder || {}) },
+      groupFolder: { ...(base.groupFolder || {}), ...(over.groupFolder || {}) },
+      order: { ...(base.order || {}), ...(over.order || {}) }
+    };
+  }
+
+  function effectiveTaxonomy() {
+    return mergeTaxonomies(state.defaultTaxonomy, currentTaxonomy());
   }
 
   function getGroupById(groupId) {
@@ -187,13 +223,15 @@
     getGroups: () => state.groups.slice(),
     getTagSet: (groupId) => state.groupTagSets.get(groupId) || null,
     getGroupsForTag: (tagName) => state.tagGroups.get(tagName) || [],
-    // T15
+    // T15 / T16
     defaultCategoryOf,
     buildTaxonomyTree,
-    getTaxonomyTree: () => buildTaxonomyTree(state.groups, currentTaxonomy()),
+    mergeTaxonomies,
+    getDefaultTaxonomy: () => state.defaultTaxonomy,
+    getTaxonomyTree: () => buildTaxonomyTree(state.groups, effectiveTaxonomy()),
     getGroupCategory: (groupId) => {
       const g = getGroupById(groupId);
-      return g ? (buildTaxonomyTree(state.groups, currentTaxonomy())
+      return g ? (buildTaxonomyTree(state.groups, effectiveTaxonomy())
         .find(c => c.direct.some(x => x.id === groupId) ||
           c.folders.some(f => f.groups.some(x => x.id === groupId))) || {}).name || defaultCategoryOf(g) : null;
     },

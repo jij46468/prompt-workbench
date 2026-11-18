@@ -1,0 +1,1120 @@
+{
+ "version": 1,
+ "note": "T16: 既定の分類上書き。大分類「作品名」に作品別グループをタイトル別フォルダへ、ジャンル別タイトル集をジャンル別フォルダへ集める。生成は tools/taxonomy/generate_default.py。",
+ "folders": [
+  {
+   "id": "work:pokemon",
+   "cat": "作品名",
+   "name": "pokemon"
+  },
+  {
+   "id": "work:fate_series",
+   "cat": "作品名",
+   "name": "fate series"
+  },
+  {
+   "id": "work:azur_lane",
+   "cat": "作品名",
+   "name": "azur lane"
+  },
+  {
+   "id": "work:fire_emblem",
+   "cat": "作品名",
+   "name": "fire emblem"
+  },
+  {
+   "id": "work:kantai_collection",
+   "cat": "作品名",
+   "name": "kantai collection"
+  },
+  {
+   "id": "work:fate_grand_order",
+   "cat": "作品名",
+   "name": "fate/grand order"
+  },
+  {
+   "id": "work:arknights",
+   "cat": "作品名",
+   "name": "arknights"
+  },
+  {
+   "id": "work:final_fantasy",
+   "cat": "作品名",
+   "name": "final fantasy"
+  },
+  {
+   "id": "work:girls__frontline",
+   "cat": "作品名",
+   "name": "girls' frontline"
+  },
+  {
+   "id": "work:pretty_cure",
+   "cat": "作品名",
+   "name": "pretty cure"
+  },
+  {
+   "id": "work:genshin_impact",
+   "cat": "作品名",
+   "name": "genshin impact"
+  },
+  {
+   "id": "work:touhou",
+   "cat": "作品名",
+   "name": "touhou"
+  },
+  {
+   "id": "work:pixiv_fantasia",
+   "cat": "作品名",
+   "name": "pixiv fantasia"
+  },
+  {
+   "id": "work:girls_und_panzer",
+   "cat": "作品名",
+   "name": "girls und panzer"
+  },
+  {
+   "id": "work:idolmaster_cinderella_girls",
+   "cat": "作品名",
+   "name": "idolmaster cinderella girls"
+  },
+  {
+   "id": "work:digimon",
+   "cat": "作品名",
+   "name": "digimon"
+  },
+  {
+   "id": "work:umamusume",
+   "cat": "作品名",
+   "name": "umamusume"
+  },
+  {
+   "id": "work:blue_archive",
+   "cat": "作品名",
+   "name": "blue archive"
+  },
+  {
+   "id": "work:project_moon",
+   "cat": "作品名",
+   "name": "project moon"
+  },
+  {
+   "id": "work:jojo_no_kimyou_na_bouken",
+   "cat": "作品名",
+   "name": "jojo no kimyou na bouken"
+  },
+  {
+   "id": "work:mahou_shoujo_madoka_magica",
+   "cat": "作品名",
+   "name": "mahou shoujo madoka magica"
+  },
+  {
+   "id": "work:gundam",
+   "cat": "作品名",
+   "name": "gundam"
+  },
+  {
+   "id": "work:goddess_of_victory__nikke",
+   "cat": "作品名",
+   "name": "goddess of victory: nikke"
+  },
+  {
+   "id": "work:one_piece",
+   "cat": "作品名",
+   "name": "one piece"
+  },
+  {
+   "id": "work:tales_of",
+   "cat": "作品名",
+   "name": "tales of..."
+  },
+  {
+   "id": "work:kemono_friends",
+   "cat": "作品名",
+   "name": "kemono friends"
+  },
+  {
+   "id": "work:dragon_ball",
+   "cat": "作品名",
+   "name": "dragon ball"
+  },
+  {
+   "id": "work:sailor_moon",
+   "cat": "作品名",
+   "name": "sailor moon"
+  },
+  {
+   "id": "work:kamen_rider",
+   "cat": "作品名",
+   "name": "kamen rider"
+  },
+  {
+   "id": "work:last_origin",
+   "cat": "作品名",
+   "name": "last origin"
+  },
+  {
+   "id": "work:housamo",
+   "cat": "作品名",
+   "name": "housamo"
+  },
+  {
+   "id": "work:dragon_quest",
+   "cat": "作品名",
+   "name": "dragon quest"
+  },
+  {
+   "id": "work:mega_man",
+   "cat": "作品名",
+   "name": "mega man"
+  },
+  {
+   "id": "work:kirby",
+   "cat": "作品名",
+   "name": "kirby"
+  },
+  {
+   "id": "work:honkai_impact_3rd",
+   "cat": "作品名",
+   "name": "honkai impact 3rd"
+  },
+  {
+   "id": "work:touken_ranbu",
+   "cat": "作品名",
+   "name": "touken ranbu"
+  },
+  {
+   "id": "work:honkai__star_rail",
+   "cat": "作品名",
+   "name": "honkai: star rail"
+  },
+  {
+   "id": "work:princess_connect",
+   "cat": "作品名",
+   "name": "princess connect!"
+  },
+  {
+   "id": "work:world_witches_series",
+   "cat": "作品名",
+   "name": "world witches series"
+  },
+  {
+   "id": "work:love_live",
+   "cat": "作品名",
+   "name": "love live!"
+  },
+  {
+   "id": "work:street_fighter",
+   "cat": "作品名",
+   "name": "street fighter"
+  },
+  {
+   "id": "work:nippon_ichi",
+   "cat": "作品名",
+   "name": "nippon ichi"
+  },
+  {
+   "id": "work:ragnarok_online",
+   "cat": "作品名",
+   "name": "ragnarok online"
+  },
+  {
+   "id": "work:yu_gi_oh",
+   "cat": "作品名",
+   "name": "yu-gi-oh!"
+  },
+  {
+   "id": "work:boku_no_hero_academia",
+   "cat": "作品名",
+   "name": "boku no hero academia"
+  },
+  {
+   "id": "work:reverse_1999",
+   "cat": "作品名",
+   "name": "reverse:1999"
+  },
+  {
+   "id": "work:danganronpa",
+   "cat": "作品名",
+   "name": "danganronpa"
+  },
+  {
+   "id": "work:vocaloid",
+   "cat": "作品名",
+   "name": "vocaloid"
+  },
+  {
+   "id": "work:naruto",
+   "cat": "作品名",
+   "name": "naruto"
+  },
+  {
+   "id": "work:toaru_majutsu_no_index",
+   "cat": "作品名",
+   "name": "toaru majutsu no index"
+  },
+  {
+   "id": "work:warship_girls_r",
+   "cat": "作品名",
+   "name": "warship girls r"
+  },
+  {
+   "id": "work:xenoblade",
+   "cat": "作品名",
+   "name": "xenoblade"
+  },
+  {
+   "id": "work:idolmaster_million_live",
+   "cat": "作品名",
+   "name": "idolmaster million live!"
+  },
+  {
+   "id": "work:atelier",
+   "cat": "作品名",
+   "name": "atelier"
+  },
+  {
+   "id": "work:eiyuu_densetsu",
+   "cat": "作品名",
+   "name": "eiyuu densetsu"
+  },
+  {
+   "id": "work:sonic",
+   "cat": "作品名",
+   "name": "sonic"
+  },
+  {
+   "id": "work:ace_attorney",
+   "cat": "作品名",
+   "name": "ace attorney"
+  },
+  {
+   "id": "work:oshiro_project",
+   "cat": "作品名",
+   "name": "oshiro project"
+  },
+  {
+   "id": "work:hololive",
+   "cat": "作品名",
+   "name": "hololive"
+  },
+  {
+   "id": "work:bleach",
+   "cat": "作品名",
+   "name": "bleach"
+  },
+  {
+   "id": "work:senran_kagura",
+   "cat": "作品名",
+   "name": "senran kagura"
+  },
+  {
+   "id": "work:flower_knight_girl",
+   "cat": "作品名",
+   "name": "flower knight girl"
+  },
+  {
+   "id": "work:ultra_series",
+   "cat": "作品名",
+   "name": "ultra series"
+  },
+  {
+   "id": "work:bang_dream",
+   "cat": "作品名",
+   "name": "bang dream!"
+  },
+  {
+   "id": "work:sword_art_online",
+   "cat": "作品名",
+   "name": "sword art online"
+  },
+  {
+   "id": "work:cookie_run",
+   "cat": "作品名",
+   "name": "cookie run"
+  },
+  {
+   "id": "work:evillious_nendaiki",
+   "cat": "作品名",
+   "name": "evillious nendaiki"
+  },
+  {
+   "id": "work:punishing__gray_raven",
+   "cat": "作品名",
+   "name": "punishing: gray raven"
+  },
+  {
+   "id": "work:gensou_suikoden",
+   "cat": "作品名",
+   "name": "gensou suikoden"
+  },
+  {
+   "id": "work:path_to_nowhere",
+   "cat": "作品名",
+   "name": "path to nowhere"
+  },
+  {
+   "id": "work:wuthering_waves",
+   "cat": "作品名",
+   "name": "wuthering waves"
+  },
+  {
+   "id": "work:alchemy_stars",
+   "cat": "作品名",
+   "name": "alchemy stars"
+  },
+  {
+   "id": "work:animal_crossing",
+   "cat": "作品名",
+   "name": "animal crossing"
+  },
+  {
+   "id": "work:counter_side",
+   "cat": "作品名",
+   "name": "counter:side"
+  },
+  {
+   "id": "work:hunter_x_hunter",
+   "cat": "作品名",
+   "name": "hunter x hunter"
+  },
+  {
+   "id": "work:muv_luv",
+   "cat": "作品名",
+   "name": "muv-luv"
+  },
+  {
+   "id": "work:puzzle___dragons",
+   "cat": "作品名",
+   "name": "puzzle & dragons"
+  },
+  {
+   "id": "work:shadowverse",
+   "cat": "作品名",
+   "name": "shadowverse"
+  },
+  {
+   "id": "work:zenless_zone_zero",
+   "cat": "作品名",
+   "name": "zenless zone zero"
+  },
+  {
+   "id": "work:mahou_sensei_negima",
+   "cat": "作品名",
+   "name": "mahou sensei negima"
+  },
+  {
+   "id": "work:super_sentai",
+   "cat": "作品名",
+   "name": "super sentai"
+  },
+  {
+   "id": "work:minecraft",
+   "cat": "作品名",
+   "name": "minecraft"
+  },
+  {
+   "id": "work:puyopuyo",
+   "cat": "作品名",
+   "name": "puyopuyo"
+  },
+  {
+   "id": "work:onmyoji",
+   "cat": "作品名",
+   "name": "onmyoji"
+  },
+  {
+   "id": "work:saibou_shinkyoku",
+   "cat": "作品名",
+   "name": "saibou shinkyoku"
+  },
+  {
+   "id": "work:bemani",
+   "cat": "作品名",
+   "name": "bemani"
+  },
+  {
+   "id": "work:kingdom_hearts",
+   "cat": "作品名",
+   "name": "kingdom hearts"
+  },
+  {
+   "id": "work:meitantei_conan",
+   "cat": "作品名",
+   "name": "meitantei conan"
+  },
+  {
+   "id": "work:pokemon_anime",
+   "cat": "作品名",
+   "name": "pokemon anime"
+  },
+  {
+   "id": "work:power_rangers",
+   "cat": "作品名",
+   "name": "power rangers"
+  },
+  {
+   "id": "work:idolmaster_shiny_colors",
+   "cat": "作品名",
+   "name": "idolmaster shiny colors"
+  },
+  {
+   "id": "work:my_little_pony",
+   "cat": "作品名",
+   "name": "my little pony"
+  },
+  {
+   "id": "work:sousou_no_frieren",
+   "cat": "作品名",
+   "name": "sousou no frieren"
+  },
+  {
+   "id": "work:honkai_gakuen",
+   "cat": "作品名",
+   "name": "honkai gakuen"
+  },
+  {
+   "id": "work:world_of_warcraft",
+   "cat": "作品名",
+   "name": "world of warcraft"
+  },
+  {
+   "id": "work:funamusea",
+   "cat": "作品名",
+   "name": "funamusea"
+  },
+  {
+   "id": "work:lucky_star",
+   "cat": "作品名",
+   "name": "lucky star"
+  },
+  {
+   "id": "work:x_men",
+   "cat": "作品名",
+   "name": "x-men"
+  },
+  {
+   "id": "work:cardcaptor_sakura",
+   "cat": "作品名",
+   "name": "cardcaptor sakura"
+  },
+  {
+   "id": "work:d4dj",
+   "cat": "作品名",
+   "name": "d4dj"
+  },
+  {
+   "id": "work:eternal_return",
+   "cat": "作品名",
+   "name": "eternal return"
+  },
+  {
+   "id": "work:sanrio",
+   "cat": "作品名",
+   "name": "sanrio"
+  },
+  {
+   "id": "work:dungeon_and_fighter",
+   "cat": "作品名",
+   "name": "dungeon and fighter"
+  },
+  {
+   "id": "work:mon_musu_quest",
+   "cat": "作品名",
+   "name": "mon-musu quest!"
+  },
+  {
+   "id": "work:epic_seven",
+   "cat": "作品名",
+   "name": "epic seven"
+  },
+  {
+   "id": "work:five_nights_at_freddy_s",
+   "cat": "作品名",
+   "name": "five nights at freddy's"
+  },
+  {
+   "id": "work:ryuu_ga_gotoku",
+   "cat": "作品名",
+   "name": "ryuu ga gotoku"
+  },
+  {
+   "id": "work:unicorn_overlord",
+   "cat": "作品名",
+   "name": "unicorn overlord"
+  },
+  {
+   "id": "work:keroro_gunsou",
+   "cat": "作品名",
+   "name": "keroro gunsou"
+  },
+  {
+   "id": "work:dota",
+   "cat": "作品名",
+   "name": "dota"
+  },
+  {
+   "id": "work:guardian_tales",
+   "cat": "作品名",
+   "name": "guardian tales"
+  },
+  {
+   "id": "work:hollow_knight",
+   "cat": "作品名",
+   "name": "hollow knight"
+  },
+  {
+   "id": "work:league_of_legends",
+   "cat": "作品名",
+   "name": "league of legends"
+  },
+  {
+   "id": "work:sky__children_of_the_light",
+   "cat": "作品名",
+   "name": "sky: children of the light"
+  },
+  {
+   "id": "work:ben_10",
+   "cat": "作品名",
+   "name": "ben 10"
+  },
+  {
+   "id": "work:bokujou_monogatari",
+   "cat": "作品名",
+   "name": "bokujou monogatari"
+  },
+  {
+   "id": "work:jock_studio",
+   "cat": "作品名",
+   "name": "jock studio"
+  },
+  {
+   "id": "work:ash_arms",
+   "cat": "作品名",
+   "name": "ash arms"
+  },
+  {
+   "id": "work:camp_buddy",
+   "cat": "作品名",
+   "name": "camp buddy"
+  },
+  {
+   "id": "work:full_service",
+   "cat": "作品名",
+   "name": "full service"
+  },
+  {
+   "id": "work:haze_reverb",
+   "cat": "作品名",
+   "name": "haze/reverb"
+  },
+  {
+   "id": "work:strinova",
+   "cat": "作品名",
+   "name": "strinova"
+  },
+  {
+   "id": "work:fairytale_police_hoe_department",
+   "cat": "作品名",
+   "name": "fairytale police hoe department"
+  },
+  {
+   "id": "work:nikki",
+   "cat": "作品名",
+   "name": "nikki"
+  },
+  {
+   "id": "work:grimms_notes",
+   "cat": "作品名",
+   "name": "grimms notes"
+  },
+  {
+   "id": "work:eversoul",
+   "cat": "作品名",
+   "name": "eversoul"
+  },
+  {
+   "id": "work:food_fantasy",
+   "cat": "作品名",
+   "name": "food fantasy"
+  },
+  {
+   "id": "work:tenka_hyakken",
+   "cat": "作品名",
+   "name": "tenka hyakken"
+  },
+  {
+   "id": "work:trickcal",
+   "cat": "作品名",
+   "name": "trickcal"
+  },
+  {
+   "id": "work:warframe",
+   "cat": "作品名",
+   "name": "warframe"
+  },
+  {
+   "id": "work:warrior_cats",
+   "cat": "作品名",
+   "name": "warrior cats"
+  },
+  {
+   "id": "genre:tag_group_role-playing_games",
+   "cat": "作品名",
+   "name": "role-playing games"
+  },
+  {
+   "id": "genre:tag_group_visual_novel_games",
+   "cat": "作品名",
+   "name": "visual novel games"
+  },
+  {
+   "id": "genre:tag_group_fighting_games",
+   "cat": "作品名",
+   "name": "fighting games"
+  },
+  {
+   "id": "genre:tag_group_shooter_games",
+   "cat": "作品名",
+   "name": "shooter games"
+  },
+  {
+   "id": "genre:list_of_gacha_games",
+   "cat": "作品名",
+   "name": "gacha games"
+  },
+  {
+   "id": "genre:tag_group_platform_games",
+   "cat": "作品名",
+   "name": "platform games"
+  }
+ ],
+ "folderOrder": {
+  "作品名": [
+   "work:pokemon",
+   "work:fate_series",
+   "work:azur_lane",
+   "work:fire_emblem",
+   "work:kantai_collection",
+   "work:fate_grand_order",
+   "work:arknights",
+   "work:final_fantasy",
+   "work:girls__frontline",
+   "work:pretty_cure",
+   "work:genshin_impact",
+   "work:touhou",
+   "work:pixiv_fantasia",
+   "work:girls_und_panzer",
+   "work:idolmaster_cinderella_girls",
+   "work:digimon",
+   "work:umamusume",
+   "work:blue_archive",
+   "work:project_moon",
+   "work:jojo_no_kimyou_na_bouken",
+   "work:mahou_shoujo_madoka_magica",
+   "work:gundam",
+   "work:goddess_of_victory__nikke",
+   "work:one_piece",
+   "work:tales_of",
+   "work:kemono_friends",
+   "work:dragon_ball",
+   "work:sailor_moon",
+   "work:kamen_rider",
+   "work:last_origin",
+   "work:housamo",
+   "work:dragon_quest",
+   "work:mega_man",
+   "work:kirby",
+   "work:honkai_impact_3rd",
+   "work:touken_ranbu",
+   "work:honkai__star_rail",
+   "work:princess_connect",
+   "work:world_witches_series",
+   "work:love_live",
+   "work:street_fighter",
+   "work:nippon_ichi",
+   "work:ragnarok_online",
+   "work:yu_gi_oh",
+   "work:boku_no_hero_academia",
+   "work:reverse_1999",
+   "work:danganronpa",
+   "work:vocaloid",
+   "work:naruto",
+   "work:toaru_majutsu_no_index",
+   "work:warship_girls_r",
+   "work:xenoblade",
+   "work:idolmaster_million_live",
+   "work:atelier",
+   "work:eiyuu_densetsu",
+   "work:sonic",
+   "work:ace_attorney",
+   "work:oshiro_project",
+   "work:hololive",
+   "work:bleach",
+   "work:senran_kagura",
+   "work:flower_knight_girl",
+   "work:ultra_series",
+   "work:bang_dream",
+   "work:sword_art_online",
+   "work:cookie_run",
+   "work:evillious_nendaiki",
+   "work:punishing__gray_raven",
+   "work:gensou_suikoden",
+   "work:path_to_nowhere",
+   "work:wuthering_waves",
+   "work:alchemy_stars",
+   "work:animal_crossing",
+   "work:counter_side",
+   "work:hunter_x_hunter",
+   "work:muv_luv",
+   "work:puzzle___dragons",
+   "work:shadowverse",
+   "work:zenless_zone_zero",
+   "work:mahou_sensei_negima",
+   "work:super_sentai",
+   "work:minecraft",
+   "work:puyopuyo",
+   "work:onmyoji",
+   "work:saibou_shinkyoku",
+   "work:bemani",
+   "work:kingdom_hearts",
+   "work:meitantei_conan",
+   "work:pokemon_anime",
+   "work:power_rangers",
+   "work:idolmaster_shiny_colors",
+   "work:my_little_pony",
+   "work:sousou_no_frieren",
+   "work:honkai_gakuen",
+   "work:world_of_warcraft",
+   "work:funamusea",
+   "work:lucky_star",
+   "work:x_men",
+   "work:cardcaptor_sakura",
+   "work:d4dj",
+   "work:eternal_return",
+   "work:sanrio",
+   "work:dungeon_and_fighter",
+   "work:mon_musu_quest",
+   "work:epic_seven",
+   "work:five_nights_at_freddy_s",
+   "work:ryuu_ga_gotoku",
+   "work:unicorn_overlord",
+   "work:keroro_gunsou",
+   "work:dota",
+   "work:guardian_tales",
+   "work:hollow_knight",
+   "work:league_of_legends",
+   "work:sky__children_of_the_light",
+   "work:ben_10",
+   "work:bokujou_monogatari",
+   "work:jock_studio",
+   "work:ash_arms",
+   "work:camp_buddy",
+   "work:full_service",
+   "work:haze_reverb",
+   "work:strinova",
+   "work:fairytale_police_hoe_department",
+   "work:nikki",
+   "work:grimms_notes",
+   "work:eversoul",
+   "work:food_fantasy",
+   "work:tenka_hyakken",
+   "work:trickcal",
+   "work:warframe",
+   "work:warrior_cats",
+   "genre:tag_group_role-playing_games",
+   "genre:tag_group_visual_novel_games",
+   "genre:tag_group_fighting_games",
+   "genre:tag_group_shooter_games",
+   "genre:list_of_gacha_games",
+   "genre:tag_group_platform_games"
+  ]
+ },
+ "groupCat": {
+  "list_of_alchemy_stars_characters": "作品名",
+  "list_of_animal_crossing_characters": "作品名",
+  "list_of_ash_arms_characters": "作品名",
+  "list_of_bang_dream!_characters": "作品名",
+  "list_of_ben_10_characters": "作品名",
+  "list_of_blue_archive_characters": "作品名",
+  "list_of_boku_no_hero_academia_characters": "作品名",
+  "list_of_camp_buddy_characters": "作品名",
+  "list_of_counter:side_characters": "作品名",
+  "list_of_d4dj_characters": "作品名",
+  "list_of_dota_characters": "作品名",
+  "list_of_dungeon_and_fighter_characters": "作品名",
+  "list_of_eiyuu_densetsu_characters": "作品名",
+  "list_of_epic_seven_characters": "作品名",
+  "list_of_eternal_return_characters": "作品名",
+  "list_of_eversoul_characters": "作品名",
+  "list_of_evillious_nendaiki_characters": "作品名",
+  "list_of_fairytale_police_hoe_department_characters": "作品名",
+  "list_of_fate/grand_order_servants": "作品名",
+  "list_of_five_nights_at_freddy's_characters": "作品名",
+  "list_of_food_fantasy_characters": "作品名",
+  "list_of_full_service_characters": "作品名",
+  "list_of_funamusea_characters": "作品名",
+  "list_of_gacha_games": "作品名",
+  "list_of_genshin_impact_characters": "作品名",
+  "list_of_genshin_impact_tags": "作品名",
+  "list_of_goddess_of_victory:_nikke_characters": "作品名",
+  "list_of_grimms_notes_characters": "作品名",
+  "list_of_guardian_tales_characters": "作品名",
+  "list_of_haze/reverb_characters": "作品名",
+  "list_of_hollow_knight_characters": "作品名",
+  "list_of_hololive_songs": "作品名",
+  "list_of_honkai_gakuen_characters": "作品名",
+  "list_of_honkai_impact_3rd_characters": "作品名",
+  "list_of_honkai:_star_rail_characters": "作品名",
+  "list_of_housamo_characters": "作品名",
+  "list_of_idolmaster_cinderella_girls_characters": "作品名",
+  "list_of_idolmaster_million_live!_characters": "作品名",
+  "list_of_idolmaster_shiny_colors_characters": "作品名",
+  "list_of_jock_studio_characters": "作品名",
+  "list_of_kemono_friends_characters": "作品名",
+  "list_of_keroro_gunsou_characters": "作品名",
+  "list_of_kirby_characters": "作品名",
+  "list_of_last_origin_characters": "作品名",
+  "list_of_league_of_legends_characters": "作品名",
+  "list_of_love_live!_characters": "作品名",
+  "list_of_lucky_star_characters": "作品名",
+  "list_of_mahou_shoujo_madoka_magica_characters": "作品名",
+  "list_of_mega_man_characters": "作品名",
+  "list_of_ace_attorney_characters": "作品名",
+  "list_of_arknights_characters": "作品名",
+  "list_of_atelier_characters": "作品名",
+  "list_of_azur_lane_characters": "作品名",
+  "list_of_bemani_characters": "作品名",
+  "list_of_bleach_characters": "作品名",
+  "list_of_bokujou_monogatari_characters": "作品名",
+  "list_of_cardcaptor_sakura_characters": "作品名",
+  "list_of_cookie_run_characters": "作品名",
+  "list_of_danganronpa_characters": "作品名",
+  "list_of_digimon": "作品名",
+  "list_of_digimon_characters": "作品名",
+  "list_of_dragon_ball_characters": "作品名",
+  "list_of_dragon_quest_characters": "作品名",
+  "list_of_fate_series_characters": "作品名",
+  "list_of_final_fantasy_characters": "作品名",
+  "list_of_fire_emblem_characters": "作品名",
+  "list_of_flower_knight_girl_characters": "作品名",
+  "list_of_gensou_suikoden_characters": "作品名",
+  "list_of_girls_und_panzer_characters": "作品名",
+  "list_of_girls'_frontline_characters": "作品名",
+  "list_of_gundam_mechas": "作品名",
+  "list_of_hunter_x_hunter_characters": "作品名",
+  "list_of_jojo_no_kimyou_na_bouken_characters": "作品名",
+  "list_of_kamen_rider_characters": "作品名",
+  "list_of_kantai_collection_characters": "作品名",
+  "list_of_kingdom_hearts_characters": "作品名",
+  "list_of_mahou_sensei_negima_characters": "作品名",
+  "list_of_meitantei_conan_characters": "作品名",
+  "list_of_minecraft_characters": "作品名",
+  "list_of_my_little_pony_characters": "作品名",
+  "list_of_naruto_characters": "作品名",
+  "list_of_nippon_ichi_characters": "作品名",
+  "list_of_one_piece_characters": "作品名",
+  "list_of_oshiro_project_characters": "作品名",
+  "list_of_pokemon": "作品名",
+  "list_of_pokemon_characters": "作品名",
+  "list_of_pretty_cure_characters": "作品名",
+  "list_of_ragnarok_online_characters": "作品名",
+  "list_of_reverse:1999_characters": "作品名",
+  "list_of_sailor_moon_characters": "作品名",
+  "list_of_sanrio_characters": "作品名",
+  "list_of_street_fighter_characters": "作品名",
+  "list_of_tales_of..._characters": "作品名",
+  "list_of_toaru_majutsu_no_index_characters": "作品名",
+  "list_of_touhou_characters": "作品名",
+  "list_of_touken_ranbu_characters": "作品名",
+  "list_of_ultra_series_characters": "作品名",
+  "list_of_umamusume_characters": "作品名",
+  "list_of_vocaloid_characters": "作品名",
+  "list_of_world_witches_series_characters": "作品名",
+  "list_of_yu-gi-oh!_characters": "作品名",
+  "tag_group:fighting_games": "作品名",
+  "tag_group:platform_games": "作品名",
+  "tag_group:role-playing_games": "作品名",
+  "tag_group:shooter_games": "作品名",
+  "tag_group:visual_novel_games": "作品名",
+  "list_of_arknights_races": "作品名",
+  "list_of_mon-musu_quest!_characters": "作品名",
+  "list_of_muv-luv_characters": "作品名",
+  "list_of_nikki_characters": "作品名",
+  "list_of_onmyoji_characters": "作品名",
+  "list_of_path_to_nowhere_characters": "作品名",
+  "list_of_pixiv_fantasia_characters": "作品名",
+  "list_of_pokemon_anime_characters": "作品名",
+  "list_of_power_rangers_characters": "作品名",
+  "list_of_princess_connect!_characters": "作品名",
+  "list_of_project_moon_characters": "作品名",
+  "list_of_punishing:_gray_raven_characters": "作品名",
+  "list_of_puyopuyo_characters": "作品名",
+  "list_of_puzzle_&_dragons_characters": "作品名",
+  "list_of_ryuu_ga_gotoku_characters": "作品名",
+  "list_of_saibou_shinkyoku_characters": "作品名",
+  "list_of_senran_kagura_characters": "作品名",
+  "list_of_shadowverse_characters": "作品名",
+  "list_of_sky:_children_of_the_light_characters": "作品名",
+  "list_of_sonic_characters": "作品名",
+  "list_of_sousou_no_frieren_characters": "作品名",
+  "list_of_strinova_characters": "作品名",
+  "list_of_super_sentai_characters": "作品名",
+  "list_of_sword_art_online_characters": "作品名",
+  "list_of_tenka_hyakken_characters": "作品名",
+  "list_of_trickcal_characters": "作品名",
+  "list_of_unicorn_overlord_characters": "作品名",
+  "list_of_warframe_characters": "作品名",
+  "list_of_warrior_cats_characters": "作品名",
+  "list_of_warship_girls_r_characters": "作品名",
+  "list_of_world_of_warcraft_characters": "作品名",
+  "list_of_wuthering_waves_characters": "作品名",
+  "list_of_x-men_characters": "作品名",
+  "list_of_xenoblade_characters": "作品名",
+  "list_of_zenless_zone_zero_characters": "作品名",
+  "list_of_umamusume_costumes": "作品名"
+ },
+ "groupFolder": {
+  "list_of_alchemy_stars_characters": "work:alchemy_stars",
+  "list_of_animal_crossing_characters": "work:animal_crossing",
+  "list_of_ash_arms_characters": "work:ash_arms",
+  "list_of_bang_dream!_characters": "work:bang_dream",
+  "list_of_ben_10_characters": "work:ben_10",
+  "list_of_blue_archive_characters": "work:blue_archive",
+  "list_of_boku_no_hero_academia_characters": "work:boku_no_hero_academia",
+  "list_of_camp_buddy_characters": "work:camp_buddy",
+  "list_of_counter:side_characters": "work:counter_side",
+  "list_of_d4dj_characters": "work:d4dj",
+  "list_of_dota_characters": "work:dota",
+  "list_of_dungeon_and_fighter_characters": "work:dungeon_and_fighter",
+  "list_of_eiyuu_densetsu_characters": "work:eiyuu_densetsu",
+  "list_of_epic_seven_characters": "work:epic_seven",
+  "list_of_eternal_return_characters": "work:eternal_return",
+  "list_of_eversoul_characters": "work:eversoul",
+  "list_of_evillious_nendaiki_characters": "work:evillious_nendaiki",
+  "list_of_fairytale_police_hoe_department_characters": "work:fairytale_police_hoe_department",
+  "list_of_fate/grand_order_servants": "work:fate_grand_order",
+  "list_of_five_nights_at_freddy's_characters": "work:five_nights_at_freddy_s",
+  "list_of_food_fantasy_characters": "work:food_fantasy",
+  "list_of_full_service_characters": "work:full_service",
+  "list_of_funamusea_characters": "work:funamusea",
+  "list_of_gacha_games": "genre:list_of_gacha_games",
+  "list_of_genshin_impact_characters": "work:genshin_impact",
+  "list_of_genshin_impact_tags": "work:genshin_impact",
+  "list_of_goddess_of_victory:_nikke_characters": "work:goddess_of_victory__nikke",
+  "list_of_grimms_notes_characters": "work:grimms_notes",
+  "list_of_guardian_tales_characters": "work:guardian_tales",
+  "list_of_haze/reverb_characters": "work:haze_reverb",
+  "list_of_hollow_knight_characters": "work:hollow_knight",
+  "list_of_hololive_songs": "work:hololive",
+  "list_of_honkai_gakuen_characters": "work:honkai_gakuen",
+  "list_of_honkai_impact_3rd_characters": "work:honkai_impact_3rd",
+  "list_of_honkai:_star_rail_characters": "work:honkai__star_rail",
+  "list_of_housamo_characters": "work:housamo",
+  "list_of_idolmaster_cinderella_girls_characters": "work:idolmaster_cinderella_girls",
+  "list_of_idolmaster_million_live!_characters": "work:idolmaster_million_live",
+  "list_of_idolmaster_shiny_colors_characters": "work:idolmaster_shiny_colors",
+  "list_of_jock_studio_characters": "work:jock_studio",
+  "list_of_kemono_friends_characters": "work:kemono_friends",
+  "list_of_keroro_gunsou_characters": "work:keroro_gunsou",
+  "list_of_kirby_characters": "work:kirby",
+  "list_of_last_origin_characters": "work:last_origin",
+  "list_of_league_of_legends_characters": "work:league_of_legends",
+  "list_of_love_live!_characters": "work:love_live",
+  "list_of_lucky_star_characters": "work:lucky_star",
+  "list_of_mahou_shoujo_madoka_magica_characters": "work:mahou_shoujo_madoka_magica",
+  "list_of_mega_man_characters": "work:mega_man",
+  "list_of_ace_attorney_characters": "work:ace_attorney",
+  "list_of_arknights_characters": "work:arknights",
+  "list_of_atelier_characters": "work:atelier",
+  "list_of_azur_lane_characters": "work:azur_lane",
+  "list_of_bemani_characters": "work:bemani",
+  "list_of_bleach_characters": "work:bleach",
+  "list_of_bokujou_monogatari_characters": "work:bokujou_monogatari",
+  "list_of_cardcaptor_sakura_characters": "work:cardcaptor_sakura",
+  "list_of_cookie_run_characters": "work:cookie_run",
+  "list_of_danganronpa_characters": "work:danganronpa",
+  "list_of_digimon": "work:digimon",
+  "list_of_digimon_characters": "work:digimon",
+  "list_of_dragon_ball_characters": "work:dragon_ball",
+  "list_of_dragon_quest_characters": "work:dragon_quest",
+  "list_of_fate_series_characters": "work:fate_series",
+  "list_of_final_fantasy_characters": "work:final_fantasy",
+  "list_of_fire_emblem_characters": "work:fire_emblem",
+  "list_of_flower_knight_girl_characters": "work:flower_knight_girl",
+  "list_of_gensou_suikoden_characters": "work:gensou_suikoden",
+  "list_of_girls_und_panzer_characters": "work:girls_und_panzer",
+  "list_of_girls'_frontline_characters": "work:girls__frontline",
+  "list_of_gundam_mechas": "work:gundam",
+  "list_of_hunter_x_hunter_characters": "work:hunter_x_hunter",
+  "list_of_jojo_no_kimyou_na_bouken_characters": "work:jojo_no_kimyou_na_bouken",
+  "list_of_kamen_rider_characters": "work:kamen_rider",
+  "list_of_kantai_collection_characters": "work:kantai_collection",
+  "list_of_kingdom_hearts_characters": "work:kingdom_hearts",
+  "list_of_mahou_sensei_negima_characters": "work:mahou_sensei_negima",
+  "list_of_meitantei_conan_characters": "work:meitantei_conan",
+  "list_of_minecraft_characters": "work:minecraft",
+  "list_of_my_little_pony_characters": "work:my_little_pony",
+  "list_of_naruto_characters": "work:naruto",
+  "list_of_nippon_ichi_characters": "work:nippon_ichi",
+  "list_of_one_piece_characters": "work:one_piece",
+  "list_of_oshiro_project_characters": "work:oshiro_project",
+  "list_of_pokemon": "work:pokemon",
+  "list_of_pokemon_characters": "work:pokemon",
+  "list_of_pretty_cure_characters": "work:pretty_cure",
+  "list_of_ragnarok_online_characters": "work:ragnarok_online",
+  "list_of_reverse:1999_characters": "work:reverse_1999",
+  "list_of_sailor_moon_characters": "work:sailor_moon",
+  "list_of_sanrio_characters": "work:sanrio",
+  "list_of_street_fighter_characters": "work:street_fighter",
+  "list_of_tales_of..._characters": "work:tales_of",
+  "list_of_toaru_majutsu_no_index_characters": "work:toaru_majutsu_no_index",
+  "list_of_touhou_characters": "work:touhou",
+  "list_of_touken_ranbu_characters": "work:touken_ranbu",
+  "list_of_ultra_series_characters": "work:ultra_series",
+  "list_of_umamusume_characters": "work:umamusume",
+  "list_of_vocaloid_characters": "work:vocaloid",
+  "list_of_world_witches_series_characters": "work:world_witches_series",
+  "list_of_yu-gi-oh!_characters": "work:yu_gi_oh",
+  "tag_group:fighting_games": "genre:tag_group_fighting_games",
+  "tag_group:platform_games": "genre:tag_group_platform_games",
+  "tag_group:role-playing_games": "genre:tag_group_role-playing_games",
+  "tag_group:shooter_games": "genre:tag_group_shooter_games",
+  "tag_group:visual_novel_games": "genre:tag_group_visual_novel_games",
+  "list_of_arknights_races": "work:arknights",
+  "list_of_mon-musu_quest!_characters": "work:mon_musu_quest",
+  "list_of_muv-luv_characters": "work:muv_luv",
+  "list_of_nikki_characters": "work:nikki",
+  "list_of_onmyoji_characters": "work:onmyoji",
+  "list_of_path_to_nowhere_characters": "work:path_to_nowhere",
+  "list_of_pixiv_fantasia_characters": "work:pixiv_fantasia",
+  "list_of_pokemon_anime_characters": "work:pokemon_anime",
+  "list_of_power_rangers_characters": "work:power_rangers",
+  "list_of_princess_connect!_characters": "work:princess_connect",
+  "list_of_project_moon_characters": "work:project_moon",
+  "list_of_punishing:_gray_raven_characters": "work:punishing__gray_raven",
+  "list_of_puyopuyo_characters": "work:puyopuyo",
+  "list_of_puzzle_&_dragons_characters": "work:puzzle___dragons",
+  "list_of_ryuu_ga_gotoku_characters": "work:ryuu_ga_gotoku",
+  "list_of_saibou_shinkyoku_characters": "work:saibou_shinkyoku",
+  "list_of_senran_kagura_characters": "work:senran_kagura",
+  "list_of_shadowverse_characters": "work:shadowverse",
+  "list_of_sky:_children_of_the_light_characters": "work:sky__children_of_the_light",
+  "list_of_sonic_characters": "work:sonic",
+  "list_of_sousou_no_frieren_characters": "work:sousou_no_frieren",
+  "list_of_strinova_characters": "work:strinova",
+  "list_of_super_sentai_characters": "work:super_sentai",
+  "list_of_sword_art_online_characters": "work:sword_art_online",
+  "list_of_tenka_hyakken_characters": "work:tenka_hyakken",
+  "list_of_trickcal_characters": "work:trickcal",
+  "list_of_unicorn_overlord_characters": "work:unicorn_overlord",
+  "list_of_warframe_characters": "work:warframe",
+  "list_of_warrior_cats_characters": "work:warrior_cats",
+  "list_of_warship_girls_r_characters": "work:warship_girls_r",
+  "list_of_world_of_warcraft_characters": "work:world_of_warcraft",
+  "list_of_wuthering_waves_characters": "work:wuthering_waves",
+  "list_of_x-men_characters": "work:x_men",
+  "list_of_xenoblade_characters": "work:xenoblade",
+  "list_of_zenless_zone_zero_characters": "work:zenless_zone_zero",
+  "list_of_umamusume_costumes": "work:umamusume"
+ }
+}
