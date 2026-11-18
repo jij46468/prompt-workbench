@@ -521,7 +521,7 @@
         <div class="screen-content">
           <div class="screen-heading">
             <h2 class="screen-title">管理</h2>
-            <p class="screen-description">スニペット、辞書状態、データの入出力を管理します。</p>
+            <p class="screen-description">スニペット、辞書状態、タグ分類、データの入出力を管理します。</p>
           </div>
 
           <div class="placeholder-section">
@@ -575,6 +575,9 @@
                 </button>
               </div>
             </div>
+
+            <!-- 2.3 分類エディタ (T15 実装, taxonomy.js が描画) -->
+            <div id="taxonomyRoot"></div>
 
             <!-- 2.3 データ入出力 (T6 実装, manage.js が描画) -->
             <div id="dataIoRoot"></div>
@@ -652,7 +655,8 @@
             <h3 class="help-title">スロット</h3>
             <p class="help-text">枠ごとに決めたグループからタグを引いて、1つのプロンプトに合成する方式です。髪・目・服・背景のように役割を分担させられます。</p>
             <dl class="help-list">
-              <div class="help-item"><dt>大分類とグループ</dt><dd>その枠が引く対象の分類です。まず大分類（Wiki索引の見出し、英語表記）を選び、次にその中のグループを選びます。大分類を変えると、その分類で一番タグ数の多いグループが選ばれます。どちらも件数の多い順に並んでいます。</dd></div>
+              <div class="help-item"><dt>大分類・中分類・グループ</dt><dd>その枠が引く対象の分類です。大分類（Wiki索引の見出し、英語表記）→中分類（管理画面の分類エディタで作ったフォルダ、無ければ「中分類なし」）→グループの順に選びます。上位を変えると、その中で一番タグ数の多いグループが選ばれます。並び順は分類エディタの編集内容が反映されます。</dd></div>
+              <div class="help-item"><dt>セクション</dt><dd>グループ内の小分け（Wikiページの見出し分け）です。セクションが複数あるグループでは、特定のセクションだけに絞って引けます。「すべて」が既定です。</dd></div>
               <div class="help-item"><dt>個数</dt><dd>その枠から引くタグの数です（1〜3）。</dd></div>
               <div class="help-item"><dt>上位%</dt><dd>枠ごとに設定します。グループ内を投稿数の多い順に並べた上位X%から引きます。</dd></div>
               <div class="help-item"><dt>ON／OFF</dt><dd>チェックを外した枠は引きません。全枠OFFでは生成できません。</dd></div>
@@ -667,8 +671,9 @@
             <dl class="help-list">
               <div class="help-item"><dt>スニペット管理</dt><dd>固定フレーズの追加・編集・削除を行います。編集画面の一覧に反映されます。</dd></div>
               <div class="help-item"><dt>辞書情報</dt><dd>辞書・タググループ分類・和訳データの件数と読み込み状態を表示します。読み込みに失敗したときは再読み込みボタンを使ってください。</dd></div>
+              <div class="help-item"><dt>分類エディタ</dt><dd>タググループの大分類・中分類・グループの並びと所属を編集します。カードの ≡ をドラッグ、または ↑↓ で並べ替え、グループを別の大分類・中分類へドラッグすると所属が変わります。中分類（フォルダ）の追加・名前変更・削除もできます。名前変更・大分類の新設・グループの削除はできません。「初期状態に戻す」で編集前に戻ります。</dd></div>
               <div class="help-item"><dt>データ入出力</dt><dd>スニペットを JSON で書き出し／取り込みします。取り込みはファイルの複数選択（追加式）と貼り付けに対応します。旧形式のデータに含まれるワイルドカード部分は無視されます。</dd></div>
-              <div class="help-item"><dt>保存先</dt><dd>スニペットとスロット構成は端末のブラウザ内（localStorage）にのみ保存されます。ブラウザのデータを消すと一緒に消えるため、大事なスニペットは書き出して保管してください。</dd></div>
+              <div class="help-item"><dt>保存先</dt><dd>スニペット・スロット構成・分類の編集内容は端末のブラウザ内（localStorage）にのみ保存されます。ブラウザのデータを消すと一緒に消えるため、大事なスニペットは書き出して保管してください。</dd></div>
             </dl>
           </div>
 
@@ -687,5 +692,6 @@
   <script src="store.js"></script>
   <script src="generator.js"></script>
   <script src="manage.js"></script>
+  <script src="taxonomy.js"></script>
 </body>
 </html>

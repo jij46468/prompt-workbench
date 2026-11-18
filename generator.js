@@ -211,8 +211,8 @@
 
   /**
    * スロット方式 (T10): 1プロンプト分の合成
-   * slots: [{ groupId, count, percent, enabled }]
-   * getGroupSet: (groupId) => Set<tagName> | null
+   * slots: [{ groupId, section, count, percent, enabled }]
+   * getGroupSet: (slot) => Set<tagName> | null（セクション指定時はその範囲）
    * 各有効スロットについて、グループ内タグを投稿数降順に並べ上位 percent% を
    * プールとし、そこから count 件を抽選する。プロンプト内での重複は枠を
    * またいでも除く。固定プレフィックスは付けない（要件確定事項）。
@@ -225,7 +225,7 @@
 
     for (const slot of slots || []) {
       if (!slot || !slot.enabled) continue;
-      const set = typeof getGroupSet === 'function' ? getGroupSet(slot.groupId) : null;
+      const set = typeof getGroupSet === 'function' ? getGroupSet(slot) : null;
       if (!set) {
         warnings.push(`グループが見つかりません: ${slot.groupId}`);
         continue;
@@ -597,46 +597,44 @@
        ------------------------------------------------------------------------ */
     let slotOptionsPopulated = false;
 
-    /* T14: グループ選択を「大分類 → グループ」の2段階にする。
-       大分類は tag-groups.json の parent（Wiki 索引の見出し、英語のまま）。
-       parent の無いグループは内容で振り分ける（作品別キャラ一覧／未分類）。 */
-    const CAT_CHARACTER_LISTS = 'Character lists by work';
-    const CAT_UNCATEGORIZED = 'Uncategorized';
-
-    function slotCategoryOf(g) {
-      if (g.parent) return g.parent;
-      if (g.id.includes('characters') || g.id.endsWith('servants')) return CAT_CHARACTER_LISTS;
-      return CAT_UNCATEGORIZED;
+    /* T14→T15: グループ選択を「大分類 → 中分類 → グループ → セクション」の
+       段階選択にする。分類ツリーは groups.js の getTaxonomyTree（既定分類＋
+       端末内の上書き）を使う。セクションはグループ内の既存の小分け。 */
+    function slotTree() {
+      const api = window.PromptWorkbenchGroups;
+      return api && typeof api.getTaxonomyTree === 'function' ? api.getTaxonomyTree() : [];
     }
 
-    // 大分類の一覧（分類内はタグ数の多い順、分類自体もグループ数の多い順）
-    function slotCategories() {
-      const api = window.PromptWorkbenchGroups;
-      const groups = api && typeof api.getGroups === 'function' ? api.getGroups() : [];
-      const map = new Map();
-      for (const g of groups) {
-        const key = slotCategoryOf(g);
-        if (!map.has(key)) map.set(key, []);
-        map.get(key).push(g);
+    function slotCatGroupCount(cat) {
+      let n = (cat.direct || []).length;
+      for (const f of cat.folders || []) n += f.groups.length;
+      return n;
+    }
+
+    // 大分類内のコンテナ列: 中分類フォルダ（並び順どおり）→ 直下
+    function slotContainers(cat) {
+      const out = [];
+      for (const f of cat.folders || []) {
+        out.push({ key: `folder:${f.id}`, label: f.name, groups: f.groups });
       }
-      const cats = [...map.entries()].map(([name, gs]) => ({
-        name,
-        groups: gs.slice().sort((a, b) => b.tagCount - a.tagCount)
-      }));
-      cats.sort((a, b) => b.groups.length - a.groups.length || a.name.localeCompare(b.name));
-      return cats;
+      out.push({ key: `cat:${cat.name}`, label: '（中分類なし）', groups: cat.direct || [] });
+      return out;
     }
 
-    function slotCategoryOfGroupId(groupId) {
-      const api = window.PromptWorkbenchGroups;
-      if (!api || typeof api.getGroups !== 'function') return '';
-      const g = api.getGroups().find(x => x.id === groupId);
-      return g ? slotCategoryOf(g) : '';
+    function slotLocate(groupId) {
+      for (const cat of slotTree()) {
+        for (const cont of slotContainers(cat)) {
+          if (cont.groups.some(g => g.id === groupId)) {
+            return { cat: cat.name, container: cont.key };
+          }
+        }
+      }
+      return null;
     }
 
     function fillSlotCategoryOptions(selectEl, selectedCat) {
       selectEl.innerHTML = '';
-      const cats = slotCategories();
+      const cats = slotTree().filter(c => slotCatGroupCount(c) > 0);
       if (!cats.length) {
         const opt = document.createElement('option');
         opt.value = selectedCat || '';
@@ -647,29 +645,76 @@
       for (const c of cats) {
         const opt = document.createElement('option');
         opt.value = c.name;
-        opt.textContent = `${c.name}（${c.groups.length}）`;
+        opt.textContent = `${c.name}（${slotCatGroupCount(c)}）`;
         selectEl.appendChild(opt);
       }
       if (selectedCat && cats.some(c => c.name === selectedCat)) selectEl.value = selectedCat;
     }
 
-    function fillSlotGroupOptions(selectEl, category, selectedId) {
+    function fillSlotFolderOptions(selectEl, catName, selectedKey) {
       selectEl.innerHTML = '';
-      const cat = slotCategories().find(c => c.name === category);
+      const cat = slotTree().find(c => c.name === catName);
       if (!cat) {
+        const opt = document.createElement('option');
+        opt.value = selectedKey || '';
+        opt.textContent = '（読み込み中）';
+        selectEl.appendChild(opt);
+        return;
+      }
+      const conts = slotContainers(cat);
+      for (const cont of conts) {
+        const opt = document.createElement('option');
+        opt.value = cont.key;
+        opt.textContent = `${cont.label}（${cont.groups.length}）`;
+        selectEl.appendChild(opt);
+      }
+      if (selectedKey && conts.some(c => c.key === selectedKey)) selectEl.value = selectedKey;
+    }
+
+    function fillSlotGroupOptions(selectEl, containerKey, selectedId) {
+      selectEl.innerHTML = '';
+      let groups = null;
+      for (const cat of slotTree()) {
+        const cont = slotContainers(cat).find(c => c.key === containerKey);
+        if (cont) { groups = cont.groups; break; }
+      }
+      if (!groups) {
         const opt = document.createElement('option');
         opt.value = selectedId || '';
         opt.textContent = selectedId ? slotGroupName(selectedId) : '（読み込み中）';
         selectEl.appendChild(opt);
         return;
       }
-      for (const g of cat.groups) {
+      for (const g of groups) {
         const opt = document.createElement('option');
         opt.value = g.id;
         opt.textContent = `${g.name}（${g.tagCount}件）`;
         selectEl.appendChild(opt);
       }
-      if (selectedId && cat.groups.some(g => g.id === selectedId)) selectEl.value = selectedId;
+      if (selectedId && groups.some(g => g.id === selectedId)) selectEl.value = selectedId;
+    }
+
+    // セクション選択肢を作る。セクションが2つ未満なら false（欄を隠す）
+    function fillSlotSectionOptions(selectEl, groupId, selectedSection) {
+      selectEl.innerHTML = '';
+      const api = window.PromptWorkbenchGroups;
+      const sections = api && typeof api.getSections === 'function' ? api.getSections(groupId) : [];
+      if (sections.length < 2) return false;
+      const total = sections.reduce((s, x) => s + x.tagCount, 0);
+      const all = document.createElement('option');
+      all.value = '';
+      all.textContent = `すべて（${total}件）`;
+      selectEl.appendChild(all);
+      for (const s of sections) {
+        const opt = document.createElement('option');
+        opt.value = s.name;
+        opt.textContent = `${s.name}（${s.tagCount}件）`;
+        selectEl.appendChild(opt);
+      }
+      if (selectedSection && sections.some(s => s.name === selectedSection)) {
+        selectEl.value = selectedSection;
+      }
+      return true;
     }
 
     function getSlotsFromStore() {
@@ -726,8 +771,16 @@
                 <select class="slot-cat-select gen-input-text" aria-label="スロット ${idx + 1} の大分類"></select>
               </div>
               <div class="slot-field">
+                <span class="slot-field-name">中分類</span>
+                <select class="slot-folder-select gen-input-text" aria-label="スロット ${idx + 1} の中分類"></select>
+              </div>
+              <div class="slot-field">
                 <span class="slot-field-name">グループ</span>
                 <select class="slot-select gen-input-text" aria-label="スロット ${idx + 1} のグループ"></select>
+              </div>
+              <div class="slot-field slot-section-wrap">
+                <span class="slot-field-name">セクション</span>
+                <select class="slot-section-select gen-input-text" aria-label="スロット ${idx + 1} のセクション"></select>
               </div>
               <div class="slot-row-settings">
                 <label class="slot-setting">個数
@@ -745,17 +798,29 @@
         const toggleBtn = row.querySelector('.slot-toggle');
         const summaryEl = row.querySelector('.slot-summary');
         const catSelect = row.querySelector('.slot-cat-select');
+        const folderSelect = row.querySelector('.slot-folder-select');
         const select = row.querySelector('.slot-select');
+        const sectionWrap = row.querySelector('.slot-section-wrap');
+        const sectionSelect = row.querySelector('.slot-section-select');
         const countInput = row.querySelector('.slot-count');
         const percentInput = row.querySelector('.slot-percent');
         const delBtn = row.querySelector('.slot-del-btn');
 
         const updateSummary = () => {
-          summaryEl.textContent = `枠${idx + 1}：${slotGroupName(select.value)} ・ ${countInput.value}個 ・ 上位${percentInput.value}%`;
+          const sec = sectionSelect.value ? ` / ${sectionSelect.value}` : '';
+          summaryEl.textContent = `枠${idx + 1}：${slotGroupName(select.value)}${sec} ・ ${countInput.value}個 ・ 上位${percentInput.value}%`;
         };
 
-        fillSlotCategoryOptions(catSelect, slotCategoryOfGroupId(slot.groupId));
-        fillSlotGroupOptions(select, catSelect.value, slot.groupId);
+        const refreshSections = () => {
+          const has = fillSlotSectionOptions(sectionSelect, select.value, slot.section || '');
+          sectionWrap.style.display = has ? '' : 'none';
+        };
+
+        const loc = slotLocate(slot.groupId);
+        fillSlotCategoryOptions(catSelect, loc ? loc.cat : '');
+        fillSlotFolderOptions(folderSelect, catSelect.value, loc ? loc.container : '');
+        fillSlotGroupOptions(select, folderSelect.value, slot.groupId);
+        refreshSections();
         updateSummary();
 
         toggleBtn.addEventListener('click', () => {
@@ -779,17 +844,36 @@
             badge.remove();
           }
         });
-        catSelect.addEventListener('change', () => {
-          // 大分類を変えたら、その分類の先頭グループを選び直す
-          fillSlotGroupOptions(select, catSelect.value, null);
+        const saveGroupSelection = () => {
           const list = getSlotsFromStore();
-          if (list[idx]) { list[idx].groupId = select.value; saveSlotsToStore(list); }
+          if (list[idx]) {
+            list[idx].groupId = select.value;
+            list[idx].section = sectionSelect.value || '';
+            saveSlotsToStore(list);
+          }
           updateSummary();
+        };
+        catSelect.addEventListener('change', () => {
+          // 大分類を変えたら、先頭コンテナの先頭グループを選び直す
+          fillSlotFolderOptions(folderSelect, catSelect.value, '');
+          fillSlotGroupOptions(select, folderSelect.value, null);
+          slot.section = '';
+          refreshSections();
+          saveGroupSelection();
+        });
+        folderSelect.addEventListener('change', () => {
+          fillSlotGroupOptions(select, folderSelect.value, null);
+          slot.section = '';
+          refreshSections();
+          saveGroupSelection();
         });
         select.addEventListener('change', () => {
-          const list = getSlotsFromStore();
-          if (list[idx]) { list[idx].groupId = select.value; saveSlotsToStore(list); }
-          updateSummary();
+          slot.section = '';
+          refreshSections();
+          saveGroupSelection();
+        });
+        sectionSelect.addEventListener('change', () => {
+          saveGroupSelection();
         });
         countInput.addEventListener('change', () => {
           const v = Math.min(3, Math.max(1, Math.round(Number(countInput.value) || 1)));
@@ -821,11 +905,22 @@
     if (slotAddBtn) {
       slotAddBtn.addEventListener('click', () => {
         const list = getSlotsFromStore();
-        const api = window.PromptWorkbenchGroups;
-        const groups = api && typeof api.getGroups === 'function' ? api.getGroups() : [];
+        let firstGroupId = '';
+        const tree = slotTree();
+        for (const cat of tree) {
+          const conts = slotContainers(cat);
+          const first = conts.find(c => c.groups.length);
+          if (first) { firstGroupId = first.groups[0].id; break; }
+        }
+        if (!firstGroupId) {
+          const api = window.PromptWorkbenchGroups;
+          const groups = api && typeof api.getGroups === 'function' ? api.getGroups() : [];
+          firstGroupId = groups.length > 0 ? groups[0].id : '';
+        }
         list.push({
           id: 'slot_' + Date.now().toString(36),
-          groupId: groups.length > 0 ? groups[0].id : '',
+          groupId: firstGroupId,
+          section: '',
           count: 1,
           percent: 100,
           enabled: true,
@@ -867,6 +962,12 @@
     }
 
     renderSlotList();
+
+    // 分類の上書き (T15) が変わったらスロット一覧を描き直す
+    const wbStoreForTax = window.PromptWorkbench && window.PromptWorkbench.store;
+    if (wbStoreForTax && typeof wbStoreForTax.subscribeTaxonomy === 'function') {
+      wbStoreForTax.subscribeTaxonomy(() => { renderSlotList(); });
+    }
 
     // グループ分類の読み込み完了後にセレクトの選択肢を差し替える
     const slotPopTimer = setInterval(() => {
@@ -1052,7 +1153,12 @@
         const allTags = dict.getAllTags();
         for (let i = 0; i < count; i++) {
           const itemSeed = (baseSeed + i) >>> 0;
-          const res = generateSlotPrompt(slots, allTags, (id) => gApi.getTagSet(id), itemSeed);
+          const res = generateSlotPrompt(slots, allTags, (slot) => {
+            if (slot.section) {
+              return gApi.getSectionTagSet(slot.groupId, slot.section) || gApi.getTagSet(slot.groupId);
+            }
+            return gApi.getTagSet(slot.groupId);
+          }, itemSeed);
           newResults.push({
             id: `gen_res_${Date.now()}_${resultIdSeq++}`,
             index: i + 1,
