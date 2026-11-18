@@ -2058,7 +2058,25 @@ body {
 
 .slot-row-body .slot-select {
   width: 100%;
+}
+
+/* T14: 大分類→グループの2段階セレクト */
+.slot-field {
   margin-top: 8px;
+}
+
+.slot-field-name {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  margin-bottom: 2px;
+}
+
+.slot-cat-select {
+  width: 100%;
+  min-height: 40px;
+  font-family: inherit;
+  font-size: 0.9rem;
 }
 
 /* セクション折りたたみ (T13) */

@@ -597,37 +597,79 @@
        ------------------------------------------------------------------------ */
     let slotOptionsPopulated = false;
 
-    function fillSlotGroupOptions(selectEl, selectedId) {
+    /* T14: グループ選択を「大分類 → グループ」の2段階にする。
+       大分類は tag-groups.json の parent（Wiki 索引の見出し、英語のまま）。
+       parent の無いグループは内容で振り分ける（作品別キャラ一覧／未分類）。 */
+    const CAT_CHARACTER_LISTS = 'Character lists by work';
+    const CAT_UNCATEGORIZED = 'Uncategorized';
+
+    function slotCategoryOf(g) {
+      if (g.parent) return g.parent;
+      if (g.id.includes('characters') || g.id.endsWith('servants')) return CAT_CHARACTER_LISTS;
+      return CAT_UNCATEGORIZED;
+    }
+
+    // 大分類の一覧（分類内はタグ数の多い順、分類自体もグループ数の多い順）
+    function slotCategories() {
       const api = window.PromptWorkbenchGroups;
-      const status = api && typeof api.getStatus === 'function' ? api.getStatus() : null;
+      const groups = api && typeof api.getGroups === 'function' ? api.getGroups() : [];
+      const map = new Map();
+      for (const g of groups) {
+        const key = slotCategoryOf(g);
+        if (!map.has(key)) map.set(key, []);
+        map.get(key).push(g);
+      }
+      const cats = [...map.entries()].map(([name, gs]) => ({
+        name,
+        groups: gs.slice().sort((a, b) => b.tagCount - a.tagCount)
+      }));
+      cats.sort((a, b) => b.groups.length - a.groups.length || a.name.localeCompare(b.name));
+      return cats;
+    }
+
+    function slotCategoryOfGroupId(groupId) {
+      const api = window.PromptWorkbenchGroups;
+      if (!api || typeof api.getGroups !== 'function') return '';
+      const g = api.getGroups().find(x => x.id === groupId);
+      return g ? slotCategoryOf(g) : '';
+    }
+
+    function fillSlotCategoryOptions(selectEl, selectedCat) {
       selectEl.innerHTML = '';
-      if (!status || status.status !== 'ready') {
+      const cats = slotCategories();
+      if (!cats.length) {
         const opt = document.createElement('option');
-        opt.value = selectedId || '';
-        opt.textContent = selectedId ? selectedId : '（読み込み中）';
+        opt.value = selectedCat || '';
+        opt.textContent = selectedCat || '（読み込み中）';
         selectEl.appendChild(opt);
         return;
       }
-      const groups = api.getGroups().slice().sort((a, b) =>
-        (a.parent || '').localeCompare(b.parent || '') || b.tagCount - a.tagCount);
-      const byParent = new Map();
-      for (const g of groups) {
-        const key = g.parent || 'その他';
-        if (!byParent.has(key)) byParent.set(key, []);
-        byParent.get(key).push(g);
+      for (const c of cats) {
+        const opt = document.createElement('option');
+        opt.value = c.name;
+        opt.textContent = `${c.name}（${c.groups.length}）`;
+        selectEl.appendChild(opt);
       }
-      for (const [parent, gs] of byParent) {
-        const og = document.createElement('optgroup');
-        og.label = parent;
-        for (const g of gs) {
-          const opt = document.createElement('option');
-          opt.value = g.id;
-          opt.textContent = `${g.name}（${g.tagCount}件）`;
-          og.appendChild(opt);
-        }
-        selectEl.appendChild(og);
+      if (selectedCat && cats.some(c => c.name === selectedCat)) selectEl.value = selectedCat;
+    }
+
+    function fillSlotGroupOptions(selectEl, category, selectedId) {
+      selectEl.innerHTML = '';
+      const cat = slotCategories().find(c => c.name === category);
+      if (!cat) {
+        const opt = document.createElement('option');
+        opt.value = selectedId || '';
+        opt.textContent = selectedId ? slotGroupName(selectedId) : '（読み込み中）';
+        selectEl.appendChild(opt);
+        return;
       }
-      if (selectedId) selectEl.value = selectedId;
+      for (const g of cat.groups) {
+        const opt = document.createElement('option');
+        opt.value = g.id;
+        opt.textContent = `${g.name}（${g.tagCount}件）`;
+        selectEl.appendChild(opt);
+      }
+      if (selectedId && cat.groups.some(g => g.id === selectedId)) selectEl.value = selectedId;
     }
 
     function getSlotsFromStore() {
@@ -679,7 +721,14 @@
           </div>
           <div class="slot-row-body">
             <div class="slot-row-body-inner">
-              <select class="slot-select gen-input-text" aria-label="スロット ${idx + 1} のグループ"></select>
+              <div class="slot-field">
+                <span class="slot-field-name">大分類</span>
+                <select class="slot-cat-select gen-input-text" aria-label="スロット ${idx + 1} の大分類"></select>
+              </div>
+              <div class="slot-field">
+                <span class="slot-field-name">グループ</span>
+                <select class="slot-select gen-input-text" aria-label="スロット ${idx + 1} のグループ"></select>
+              </div>
               <div class="slot-row-settings">
                 <label class="slot-setting">個数
                   <input type="number" class="gen-input-number slot-count" min="1" max="3" value="${slot.count}" aria-label="抽選個数 (1〜3)">
@@ -695,6 +744,7 @@
         const enabledCb = row.querySelector('.slot-enabled');
         const toggleBtn = row.querySelector('.slot-toggle');
         const summaryEl = row.querySelector('.slot-summary');
+        const catSelect = row.querySelector('.slot-cat-select');
         const select = row.querySelector('.slot-select');
         const countInput = row.querySelector('.slot-count');
         const percentInput = row.querySelector('.slot-percent');
@@ -704,7 +754,8 @@
           summaryEl.textContent = `枠${idx + 1}：${slotGroupName(select.value)} ・ ${countInput.value}個 ・ 上位${percentInput.value}%`;
         };
 
-        fillSlotGroupOptions(select, slot.groupId);
+        fillSlotCategoryOptions(catSelect, slotCategoryOfGroupId(slot.groupId));
+        fillSlotGroupOptions(select, catSelect.value, slot.groupId);
         updateSummary();
 
         toggleBtn.addEventListener('click', () => {
@@ -727,6 +778,13 @@
           } else if (enabledCb.checked && badge) {
             badge.remove();
           }
+        });
+        catSelect.addEventListener('change', () => {
+          // 大分類を変えたら、その分類の先頭グループを選び直す
+          fillSlotGroupOptions(select, catSelect.value, null);
+          const list = getSlotsFromStore();
+          if (list[idx]) { list[idx].groupId = select.value; saveSlotsToStore(list); }
+          updateSummary();
         });
         select.addEventListener('change', () => {
           const list = getSlotsFromStore();
@@ -817,7 +875,7 @@
       if (status && status.status === 'ready') {
         clearInterval(slotPopTimer);
         slotOptionsPopulated = true;
-        if (slotInfo) slotInfo.textContent = `Wiki分類 ${status.groupCount} グループから枠ごとに選べます`;
+        if (slotInfo) slotInfo.textContent = `Wiki分類 ${status.groupCount} グループを、大分類から段階的に選べます`;
         renderSlotList();
       } else if (status && status.status === 'error') {
         clearInterval(slotPopTimer);
