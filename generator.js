@@ -455,8 +455,12 @@
     }
 
     let groupSelectPopulated = false;
-    function populateGroupSelect() {
-      if (groupSelectPopulated || !genGroupSelect) return;
+    // T15.1: 辞書ランダムのグループ絞り込みにも分類ツリー（既定＋分類エディタの
+    // 編集内容）を反映する。大分類を optgroup とし、分類内は中分類フォルダの
+    // グループ→直下の順で並べる。force=true で再構築（選択中のグループは維持）。
+    function populateGroupSelect(force) {
+      if (!genGroupSelect) return;
+      if (groupSelectPopulated && !force) return;
       const api = window.PromptWorkbenchGroups;
       const status = api && typeof api.getStatus === 'function' ? api.getStatus() : null;
       if (!status) return;
@@ -466,18 +470,19 @@
         return;
       }
       if (status.status !== 'ready') return;
-      const groups = api.getGroups().slice().sort((a, b) =>
-        (a.parent || '').localeCompare(b.parent || '') || b.tagCount - a.tagCount);
-      const byParent = new Map();
-      for (const g of groups) {
-        const key = g.parent || 'その他';
-        if (!byParent.has(key)) byParent.set(key, []);
-        byParent.get(key).push(g);
-      }
-      for (const [parent, gs] of byParent) {
+      const prev = genGroupSelect.value;
+      genGroupSelect.querySelectorAll('optgroup').forEach(og => og.remove());
+      const tree = typeof api.getTaxonomyTree === 'function' ? api.getTaxonomyTree() : [];
+      let total = 0;
+      for (const cat of tree) {
+        const ordered = [];
+        for (const f of cat.folders || []) ordered.push(...f.groups);
+        ordered.push(...(cat.direct || []));
+        if (!ordered.length) continue;
+        total += ordered.length;
         const og = document.createElement('optgroup');
-        og.label = parent;
-        for (const g of gs) {
+        og.label = cat.name;
+        for (const g of ordered) {
           const opt = document.createElement('option');
           opt.value = g.id;
           opt.textContent = `${g.name}（${g.tagCount}件）`;
@@ -485,8 +490,9 @@
         }
         genGroupSelect.appendChild(og);
       }
+      if (prev) genGroupSelect.value = prev;
       if (genGroupInfo) {
-        genGroupInfo.textContent = `Wikiのテーマ別分類 ${groups.length} グループから絞れます（例: hair styles、backgrounds、attire）`;
+        genGroupInfo.textContent = `Wikiのテーマ別分類 ${total} グループから絞れます（例: hair styles、backgrounds、attire）。並びと所属は分類エディタの編集内容が反映されます`;
       }
       groupSelectPopulated = true;
     }
@@ -963,10 +969,14 @@
 
     renderSlotList();
 
-    // 分類の上書き (T15) が変わったらスロット一覧を描き直す
+    // 分類の上書き (T15) が変わったらスロット一覧と辞書側グループ絞り込みを描き直す
     const wbStoreForTax = window.PromptWorkbench && window.PromptWorkbench.store;
     if (wbStoreForTax && typeof wbStoreForTax.subscribeTaxonomy === 'function') {
-      wbStoreForTax.subscribeTaxonomy(() => { renderSlotList(); });
+      wbStoreForTax.subscribeTaxonomy(() => {
+        renderSlotList();
+        populateGroupSelect(true);
+        if (currentMode === 'dict') updateDictPoolInfo();
+      });
     }
 
     // グループ分類の読み込み完了後にセレクトの選択肢を差し替える
