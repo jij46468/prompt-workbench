@@ -187,19 +187,51 @@
     return store && typeof store.getTaxonomy === 'function' ? store.getTaxonomy() : null;
   }
 
-  // T16: 収録時の既定 taxonomy の上に、端末内の上書きを重ねる
+  // T16/T17.1: 収録時の既定 taxonomy の上に、端末内の上書きを重ねる。
+  // 移行ルール: 保存側にまだ無い大分類・フォルダへの既定所属は、保存側の
+  // 旧所属より優先する（旧版で保存した端末でも新分類が空にならないため）。
+  // 保存側にある分類への移動は、従来どおり保存側が優先する。
   function mergeTaxonomies(base, over) {
     if (!base) return over || null;
     if (!over) return base;
     const folders = new Map();
     for (const f of base.folders || []) folders.set(f.id, f);
     for (const f of over.folders || []) folders.set(f.id, f);
+    const overCats = new Set([
+      ...(over.catOrder || []),
+      ...Object.values(over.groupCat || {}),
+      ...(over.folders || []).map(f => f.cat)
+    ]);
+    const overFolderIds = new Set((over.folders || []).map(f => f.id));
+    const groupCat = { ...(base.groupCat || {}) };
+    for (const [gid, cat] of Object.entries(over.groupCat || {})) {
+      const baseCat = base.groupCat ? base.groupCat[gid] : undefined;
+      if (baseCat && baseCat !== cat && !overCats.has(baseCat)) continue;
+      groupCat[gid] = cat;
+    }
+    const groupFolder = { ...(base.groupFolder || {}) };
+    for (const [gid, fid] of Object.entries(over.groupFolder || {})) {
+      const baseFid = base.groupFolder ? base.groupFolder[gid] : undefined;
+      if (baseFid && baseFid !== fid && !overFolderIds.has(baseFid)) continue;
+      groupFolder[gid] = fid;
+    }
+    // 大分類の並び: 既定だけにある大分類が保存順に含まれない場合は既定順を使う
+    let catOrder = over.catOrder;
+    if (catOrder && catOrder.length) {
+      const baseCats = new Set([
+        ...Object.values(base.groupCat || {}),
+        ...(base.folders || []).map(f => f.cat)
+      ]);
+      if ([...baseCats].some(c => !catOrder.includes(c))) catOrder = base.catOrder;
+    } else {
+      catOrder = base.catOrder;
+    }
     return {
-      catOrder: over.catOrder && over.catOrder.length ? over.catOrder : base.catOrder,
-      groupCat: { ...(base.groupCat || {}), ...(over.groupCat || {}) },
+      catOrder,
+      groupCat,
       folders: [...folders.values()],
       folderOrder: { ...(base.folderOrder || {}), ...(over.folderOrder || {}) },
-      groupFolder: { ...(base.groupFolder || {}), ...(over.groupFolder || {}) },
+      groupFolder,
       order: { ...(base.order || {}), ...(over.order || {}) }
     };
   }
